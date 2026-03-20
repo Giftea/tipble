@@ -3,4 +3,4 @@ dist/
 .env
 ../.claude
 src/data/tiplog.json
-
+extension/node_modules
