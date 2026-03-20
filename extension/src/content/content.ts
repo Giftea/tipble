@@ -2,9 +2,26 @@ console.log('[Tipble] Content script loaded on:', window.location.href)
 
 import './content.css'
 
+// ─── Page detection ───────────────────────────────────────────────────────────
+
+function isVideoPage(): boolean {
+  const path = window.location.pathname
+  return (
+    path.startsWith('/v') ||
+    path.includes('/live/') ||
+    path.match(/\/[a-z0-9]+-.*\.html/) !== null
+  )
+}
+
 // ─── Badge ───────────────────────────────────────────────────────────────────
 
 function injectBadge() {
+  if (!isVideoPage()) {
+    const existing = document.getElementById('tipble-badge')
+    if (existing) existing.remove()
+    return
+  }
+
   const existing = document.getElementById('tipble-badge')
   if (existing) existing.remove()
 
@@ -78,7 +95,12 @@ new MutationObserver(() => {
   const url = location.href
   if (url !== lastUrl) {
     lastUrl = url
-    setTimeout(injectBadge, 1000)
+    const existing = document.getElementById('tipble-badge')
+    if (existing) existing.remove()
+
+    if (isVideoPage()) {
+      setTimeout(injectBadge, 1000)
+    }
   }
 }).observe(document, { subtree: true, childList: true })
 
