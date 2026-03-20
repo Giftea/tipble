@@ -1,6 +1,6 @@
-import { getSettings } from '../lib/storage.js'
-import { fetchStatus } from '../lib/api.js'
-import type { AgentStatus, TipEvent } from '../types/index.js'
+import { getSettings } from '../lib/storage'
+import { fetchStatus } from '../lib/api'
+import type { AgentStatus, TipEvent } from '../types'
 
 let lastTipCount = 0
 let lastTipId = ''
