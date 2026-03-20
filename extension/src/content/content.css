@@ -1,0 +1,89 @@
+#tipble-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.75);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-family: sans-serif;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(93, 202, 165, 0.4);
+  pointer-events: none;
+  user-select: none;
+}
+
+#tipble-badge::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #5dcaa5;
+  animation: tipble-pulse 1.5s ease-in-out infinite;
+}
+
+#tipble-badge.tipble-offline::before {
+  background: #666;
+  animation: none;
+}
+
+#tipble-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 99999;
+  background: #141414;
+  border: 1px solid #2a2a2a;
+  border-left: 3px solid #5dcaa5;
+  border-radius: 10px;
+  padding: 12px 16px;
+  min-width: 280px;
+  font-family: sans-serif;
+  color: white;
+  animation: tipble-slide-in 0.3s ease-out;
+}
+
+.tipble-toast-header {
+  font-size: 14px;
+  font-weight: 600;
+  color: #5dcaa5;
+  margin-bottom: 4px;
+}
+
+.tipble-toast-amount {
+  font-size: 15px;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.tipble-toast-meta {
+  font-size: 12px;
+  color: #888;
+  font-family: monospace;
+}
+
+@keyframes tipble-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+@keyframes tipble-slide-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes tipble-fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
