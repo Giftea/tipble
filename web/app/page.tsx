@@ -2,7 +2,6 @@
 
 import useSWR from "swr"
 import type { AgentStatus } from "@/types"
-import StatusBadge from "@/components/StatusBadge"
 import MetricCard from "@/components/MetricCard"
 import TipTable from "@/components/TipTable"
 import AgentLog from "@/components/AgentLog"
@@ -59,20 +58,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950">
-      {/* Navbar */}
-      <header className="bg-zinc-900 border-b border-zinc-800 px-6 py-3 flex items-center justify-between">
-        <span className="text-white font-bold text-xl">🦞 Tipble</span>
-        <div className="flex items-center gap-4">
-          {isLoading ? (
-            <Skeleton className="h-4 w-28" />
-          ) : (
-            <StatusBadge running={data!.running} />
-          )}
-          <ManualTipButton />
-        </div>
-      </header>
-
+    <div className="bg-zinc-950">
       {/* Creator bar */}
       <div className="bg-zinc-900/50 border-b border-zinc-800 px-6 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
