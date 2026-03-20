@@ -72,5 +72,6 @@ export interface TipbleConfig {
     llmEnabled: boolean
     llmConfidenceThreshold: number
     anthropicApiKey?: string
+    autoTippingEnabled: boolean
   }
 }

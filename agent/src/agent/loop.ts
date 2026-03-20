@@ -19,8 +19,20 @@ export interface TipEvent {
 
 export const tipLog: TipEvent[] = loadTipLog()
 export let sessionTotal = 0
+export let isPaused = false
+
+export function setIsPaused(v: boolean) { isPaused = v }
+export function resetSession() {
+  sessionTotal = 0
+  tipLog.length = 0
+}
 
 async function tick(prevState: StreamState, curr: StreamState): Promise<void> {
+  if (isPaused) {
+    console.log("[agent] Paused")
+    return
+  }
+
   const config = getConfig()
 
   if (!config.agent.autoTippingEnabled) {

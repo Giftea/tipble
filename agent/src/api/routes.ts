@@ -1,10 +1,10 @@
 import { Router } from "express"
-import { tipLog, sessionTotal } from "../agent/loop.js"
+import { tipLog, sessionTotal, isPaused, setIsPaused, resetSession } from "../agent/loop.js"
 import { getConfig, saveConfig } from "../config/loader.js"
 import { getBalance } from "../wallet/balance.js"
 import { getAgentAddress, generateNewWallet } from "../wallet/setup.js"
 import { executeTip } from "../agent/executor.js"
-import { getTodayTotal } from "../storage/tiplog.js"
+import { getTodayTotal, saveTipLog } from "../storage/tiplog.js"
 
 const router = Router()
 
@@ -61,6 +61,47 @@ router.post("/tip/manual", async (req, res) => {
       : { success: false, error: "No creator wallet set" }
   )
 })
+
+// ── Agent control ─────────────────────────────────────────────
+
+router.post("/agent/pause", (_req, res) => {
+  setIsPaused(true)
+  console.log("[api] Agent paused")
+  res.json({ success: true, paused: true })
+})
+
+router.post("/agent/resume", (_req, res) => {
+  setIsPaused(false)
+  console.log("[api] Agent resumed")
+  res.json({ success: true, paused: false })
+})
+
+router.get("/agent/status", (_req, res) => {
+  const config = getConfig()
+  res.json({
+    running: true,
+    paused: isPaused,
+    autoTippingEnabled: config.agent.autoTippingEnabled,
+    sessionTotal,
+    todayTotal: getTodayTotal(),
+    dailyLimit: config.budget.dailyLimitUsdt,
+    sessionLimit: config.budget.sessionLimitUsdt,
+    tipsCount: tipLog.length,
+    network: config.agent.network,
+    demoMode: config.agent.demoMode,
+  })
+})
+
+// ── Data ──────────────────────────────────────────────────────
+
+router.post("/data/reset", (_req, res) => {
+  saveTipLog([])
+  resetSession()
+  console.log("[api] Tip history cleared and session reset")
+  res.json({ success: true, message: "Data cleared" })
+})
+
+// ── Wallet ────────────────────────────────────────────────────
 
 router.post("/wallet/generate", async (_req, res) => {
   const result = await generateNewWallet()

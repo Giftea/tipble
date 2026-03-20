@@ -233,7 +233,7 @@ export default function RulesPage() {
       })
       if (!res.ok) throw new Error("Save failed")
       await mutate()
-      toast.success("Rules saved")
+      toast.success("Rules saved — active on next heartbeat tick")
     } catch {
       toast.error("Failed to save rules")
     } finally {
