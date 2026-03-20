@@ -1,0 +1,52 @@
+[
+  {
+    "id": "1774030991839",
+    "timestamp": "2026-03-20T18:23:11.839Z",
+    "reason": "Viewer spike detected: 220 new viewers",
+    "amount": "0.0003",
+    "asset": "ETH",
+    "txHash": "0x50bc55087bc619db3630307096cda4011b9220cc9cd14222468aa3ed14085330",
+    "eventType": "viewer_spike",
+    "confidence": 0.95
+  },
+  {
+    "id": "1774031112784",
+    "timestamp": "2026-03-20T18:25:12.784Z",
+    "reason": "Viewer spike detected: 90 new viewers",
+    "amount": "0.0003",
+    "asset": "ETH",
+    "txHash": "0x0ed57e404ea88be563c97062019c79668279441dce45666e8c1a602d490b34f5",
+    "eventType": "viewer_spike",
+    "confidence": 0.9
+  },
+  {
+    "id": "1774031121917",
+    "timestamp": "2026-03-20T18:25:21.917Z",
+    "reason": "Viewer spike from 210 to 340 viewers",
+    "amount": "0.0003",
+    "asset": "ETH",
+    "txHash": "0xfa89f62171514b8da1a70f0b8457b348068c82187f8507453d2d11030f88a74a",
+    "eventType": "viewer_spike",
+    "confidence": 0.9
+  },
+  {
+    "id": "1774031132196",
+    "timestamp": "2026-03-20T18:25:32.196Z",
+    "reason": "Reached 1000 followers milestone",
+    "amount": "0.001",
+    "asset": "ETH",
+    "txHash": "0x566ebd7dbbebf8849e234f243c2df34498c23a0e8edfe8dd0cf1c0297b663bbe",
+    "eventType": "follower_milestone",
+    "confidence": 1
+  },
+  {
+    "id": "1774031153269",
+    "timestamp": "2026-03-20T18:25:53.269Z",
+    "reason": "Viewer spike from 410 to 620 viewers",
+    "amount": "0.0003",
+    "asset": "ETH",
+    "txHash": "0x6d3e8450e9c6a6e0f41438212c633aea8a7169f37c8d7e5ce9fbb0bb45a913dd",
+    "eventType": "viewer_spike",
+    "confidence": 0.95
+  }
+]

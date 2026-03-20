@@ -35,7 +35,18 @@ export async function executeTip(decision: TipDecision): Promise<{ hash: string 
   }
 
   const weiAmount = ethToWei(decision.amount)
-  const { hash } = await sendTip(creatorAddress, weiAmount)
+
+  let hash: string
+  try {
+    ;({ hash } = await sendTip(creatorAddress, weiAmount))
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err)
+    if (msg.includes("already known") || msg.includes("nonce too low")) {
+      console.log("[executor] ⚠️ Duplicate tx rejected by node — skipping")
+      return null
+    }
+    throw err
+  }
 
   console.log(
     `[TIPBLE] ✅ ${decision.amount} ${decision.asset} → ${creatorAddress} | ${decision.reason} | tx: ${hash}`

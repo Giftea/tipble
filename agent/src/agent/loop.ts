@@ -77,6 +77,7 @@ async function tick(prevState: StreamState, curr: StreamState): Promise<void> {
 export async function runLoop(): Promise<void> {
   const { demoMode, heartbeatMs } = getConfig().agent
   let prevState: StreamState | null = null
+  let isRunning = false
 
   if (demoMode) {
     const sequence = getMockSequence()
@@ -84,6 +85,7 @@ export async function runLoop(): Promise<void> {
 
     return new Promise<void>((resolve) => {
       const timer = setInterval(async () => {
+        if (isRunning) return
         if (mockIndex >= sequence.length) {
           console.log("\n[agent] Demo complete")
           clearInterval(timer)
@@ -98,13 +100,20 @@ export async function runLoop(): Promise<void> {
           return
         }
 
-        await tick(prevState, curr)
-        prevState = curr
+        isRunning = true
+        try {
+          await tick(prevState, curr)
+        } finally {
+          prevState = curr
+          isRunning = false
+        }
       }, heartbeatMs)
     })
   } else {
     return new Promise<void>(() => {
       setInterval(async () => {
+        if (isRunning) return
+        isRunning = true
         try {
           const curr = await getStreamState()
 
@@ -117,6 +126,8 @@ export async function runLoop(): Promise<void> {
           prevState = curr
         } catch (err) {
           console.error("[agent] Error fetching stream state:", err)
+        } finally {
+          isRunning = false
         }
       }, heartbeatMs)
     })
