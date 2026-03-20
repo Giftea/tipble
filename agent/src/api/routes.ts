@@ -1,9 +1,10 @@
 import { Router } from "express"
-import { tipLog } from "../agent/loop.js"
+import { tipLog, sessionTotal } from "../agent/loop.js"
 import { getConfig, saveConfig } from "../config/loader.js"
 import { getBalance } from "../wallet/balance.js"
 import { getAgentAddress, generateNewWallet } from "../wallet/setup.js"
 import { executeTip } from "../agent/executor.js"
+import { getTodayTotal } from "../storage/tiplog.js"
 
 const router = Router()
 
@@ -21,6 +22,9 @@ router.get("/status", async (_req, res) => {
       .reduce((sum, t) => sum + parseFloat(t.amount), 0)
       .toFixed(6),
     recentTips: tipLog.slice(-20).reverse(),
+    todayTotal: getTodayTotal(),
+    sessionTotal,
+    limitsEnforced: true,
   })
 })
 
@@ -36,7 +40,8 @@ router.post("/config", (req, res) => {
   const current = getConfig()
   const merged = { ...current, ...req.body }
   saveConfig(merged)
-  res.json({ success: true })
+  console.log("[api] Config saved — agent will pick up changes on next heartbeat")
+  res.json({ success: true, message: "Changes will take effect on next heartbeat" })
 })
 
 router.post("/tip/manual", async (req, res) => {

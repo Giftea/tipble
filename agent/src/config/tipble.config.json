@@ -44,6 +44,7 @@
     "demoMode": true,
     "network": "sepolia",
     "llmEnabled": true,
-    "llmConfidenceThreshold": 0.7
+    "llmConfidenceThreshold": 0.7,
+    "autoTippingEnabled": true
   }
 }

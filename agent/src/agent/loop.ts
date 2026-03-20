@@ -3,8 +3,8 @@ import { getMockSequence } from "../rumble/mock.js"
 import { reasonAboutTip } from "../claude/reasoner.js"
 import { executeTip } from "./executor.js"
 import { getConfig } from "../config/loader.js"
+import { loadTipLog, appendTip } from "../storage/tiplog.js"
 import type { StreamState } from "../rumble/types.js"
-import type { TipbleConfig } from "../config/types.js"
 
 export interface TipEvent {
   id: string
@@ -17,19 +17,33 @@ export interface TipEvent {
   confidence: number
 }
 
-export const tipLog: TipEvent[] = []
+export const tipLog: TipEvent[] = loadTipLog()
+export let sessionTotal = 0
 
-async function tick(
-  prevState: StreamState,
-  curr: StreamState,
-  config: TipbleConfig
-): Promise<void> {
+async function tick(prevState: StreamState, curr: StreamState): Promise<void> {
+  const config = getConfig()
+
+  if (!config.agent.autoTippingEnabled) {
+    console.log("[agent] Auto-tipping disabled — skipping")
+    return
+  }
+
+  const sessionLimit = parseFloat(config.budget.sessionLimitUsdt)
+  if (sessionTotal >= sessionLimit) {
+    console.log(
+      `[agent] ⚠️ Session limit ${sessionLimit} reached — pausing auto-tipping`
+    )
+    return
+  }
+
   const decision = await reasonAboutTip(prevState, curr, config)
 
   if (decision.shouldTip) {
     const result = await executeTip(decision)
     if (result) {
-      tipLog.push({
+      sessionTotal += parseFloat(decision.amount)
+
+      const tipEvent: TipEvent = {
         id: Date.now().toString(),
         timestamp: new Date().toISOString(),
         reason: decision.reason,
@@ -38,8 +52,10 @@ async function tick(
         txHash: result.hash,
         eventType: decision.eventType,
         confidence: decision.confidence,
-      })
+      }
+      tipLog.push(tipEvent)
       if (tipLog.length > 50) tipLog.shift()
+      appendTip(tipEvent)
     }
   } else {
     process.stdout.write(".")
@@ -47,8 +63,7 @@ async function tick(
 }
 
 export async function runLoop(): Promise<void> {
-  const config = getConfig()
-  const { demoMode, heartbeatMs } = config.agent
+  const { demoMode, heartbeatMs } = getConfig().agent
   let prevState: StreamState | null = null
 
   if (demoMode) {
@@ -71,7 +86,7 @@ export async function runLoop(): Promise<void> {
           return
         }
 
-        await tick(prevState, curr, config)
+        await tick(prevState, curr)
         prevState = curr
       }, heartbeatMs)
     })
@@ -86,7 +101,7 @@ export async function runLoop(): Promise<void> {
             return
           }
 
-          await tick(prevState, curr, config)
+          await tick(prevState, curr)
           prevState = curr
         } catch (err) {
           console.error("[agent] Error fetching stream state:", err)

@@ -60,6 +60,7 @@ export interface AgentConfig {
   network: NetworkType
   llmEnabled: boolean
   llmConfidenceThreshold: number
+  autoTippingEnabled: boolean
 }
 
 export interface TipbleConfig {
