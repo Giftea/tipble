@@ -1,0 +1,28 @@
+{
+  "name": "tipble-agent",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/agent/index.ts",
+    "start": "tsx src/agent/index.ts",
+    "test:stage1": "tsx src/tests/stage1-wallet.ts",
+    "test:stage2": "tsx src/tests/stage2-rumble.ts",
+    "test:stage3": "tsx src/tests/stage3-claude.ts",
+    "test:stage4": "tsx src/tests/stage4-tip.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "latest",
+    "@tetherto/wdk": "latest",
+    "@tetherto/wdk-wallet-evm": "latest",
+    "express": "latest",
+    "dotenv": "latest",
+    "cors": "latest"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "@types/node": "latest",
+    "@types/express": "latest",
+    "@types/cors": "latest",
+    "tsx": "latest"
+  }
+}

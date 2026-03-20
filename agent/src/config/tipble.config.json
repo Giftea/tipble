@@ -1,0 +1,49 @@
+{
+  "creator": {
+    "walletAddress": "0x0f04161ac6daaaed77E5a96B82B21a7C38455CBa",
+    "displayName": "Demo Creator"
+  },
+  "rules": {
+    "followerMilestones": {
+      "enabled": true,
+      "milestones": [100, 500, 1000, 5000, 10000],
+      "tipAmount": "0.001",
+      "asset": "ETH"
+    },
+    "newSubscriber": {
+      "enabled": true,
+      "tipAmount": "0.0005",
+      "asset": "ETH"
+    },
+    "viewerSpike": {
+      "enabled": true,
+      "thresholdMultiplier": 1.5,
+      "minimumViewers": 10,
+      "tipAmount": "0.0003",
+      "asset": "ETH"
+    },
+    "watchingNow": {
+      "enabled": true,
+      "threshold": 500,
+      "tipAmount": "0.0005",
+      "asset": "ETH"
+    },
+    "newFollower": {
+      "enabled": false,
+      "tipAmount": "0.0001",
+      "asset": "ETH"
+    }
+  },
+  "budget": {
+    "maxTipPerEvent": "0.005",
+    "dailyLimitUsdt": "0.02",
+    "sessionLimitUsdt": "0.01"
+  },
+  "agent": {
+    "heartbeatMs": 10000,
+    "demoMode": true,
+    "network": "sepolia",
+    "llmEnabled": true,
+    "llmConfidenceThreshold": 0.7
+  }
+}
