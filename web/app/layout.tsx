@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
-import NavbarStatus from "@/components/NavbarStatus";
-import TabNav from "@/components/TabNav";
+import Sidebar from "@/components/Sidebar";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -30,19 +29,13 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="bg-zinc-950 text-white min-h-screen">
-        {/* Shared navbar */}
-        <header className="bg-zinc-900 border-b border-zinc-800 px-6 py-3 flex items-center justify-between">
-          <span className="text-white font-bold text-xl">🦞 Tipble</span>
-          <NavbarStatus />
-        </header>
-
-        {/* Tab navigation */}
-        <div className="bg-zinc-900 border-b border-zinc-800">
-          <TabNav />
+      <body className="bg-zinc-950 text-white h-screen overflow-hidden">
+        <div className="flex h-screen overflow-hidden">
+          <Sidebar />
+          <main className="flex-1 overflow-y-auto">
+            {children}
+          </main>
         </div>
-
-        {children}
         <Toaster />
       </body>
     </html>

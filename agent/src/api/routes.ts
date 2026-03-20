@@ -2,7 +2,7 @@ import { Router } from "express"
 import { tipLog } from "../agent/loop.js"
 import { getConfig, saveConfig } from "../config/loader.js"
 import { getBalance } from "../wallet/balance.js"
-import { getAgentAddress } from "../wallet/setup.js"
+import { getAgentAddress, generateNewWallet } from "../wallet/setup.js"
 import { executeTip } from "../agent/executor.js"
 
 const router = Router()
@@ -51,6 +51,18 @@ router.post("/tip/manual", async (req, res) => {
       ? { success: true, hash: result.hash }
       : { success: false, error: "No creator wallet set" }
   )
+})
+
+router.post("/wallet/generate", async (_req, res) => {
+  const result = await generateNewWallet()
+  res.json(result)
+})
+
+router.post("/wallet/save", (req, res) => {
+  const { seedPhrase } = req.body as { seedPhrase: string }
+  console.log("[wallet] Seed phrase save requested. Add this to your .env file:")
+  console.log(`SEED_PHRASE="${seedPhrase}"`)
+  res.json({ success: true, message: "Add this seed phrase to your .env file" })
 })
 
 export default router

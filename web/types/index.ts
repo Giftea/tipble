@@ -66,5 +66,6 @@ export interface TipbleConfig {
     network: string
     llmEnabled: boolean
     llmConfidenceThreshold: number
+    anthropicApiKey?: string
   }
 }
