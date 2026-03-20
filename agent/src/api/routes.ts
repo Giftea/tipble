@@ -24,6 +24,10 @@ router.get("/status", async (_req, res) => {
   })
 })
 
+router.get("/tips", (_req, res) => {
+  res.json([...tipLog].reverse())
+})
+
 router.get("/config", (_req, res) => {
   res.json(getConfig())
 })

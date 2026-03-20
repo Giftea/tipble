@@ -33,7 +33,7 @@ export default function Sidebar() {
         <Image
           src="/tipble.svg"
           alt="Tipble"
-          width={110}
+          width={70}
           height={32}
           className="hidden md:block"
           priority
