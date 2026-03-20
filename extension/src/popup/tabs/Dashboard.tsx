@@ -2,9 +2,15 @@ import React, { useState, useEffect } from 'react'
 import { sendManualTip } from '../../lib/api'
 import type { AgentStatus } from '../../types'
 
+interface CreatorWallet {
+  evm: string | null
+  btc: string | null
+}
+
 export default function Dashboard() {
   const [status, setStatus] = useState<AgentStatus | null>(null)
   const [offline, setOffline] = useState(false)
+  const [creatorWallet, setCreatorWallet] = useState<CreatorWallet | null>(null)
   const [showTipForm, setShowTipForm] = useState(false)
   const [tipReason, setTipReason] = useState('')
   const [tipping, setTipping] = useState(false)
@@ -18,6 +24,9 @@ export default function Dashboard() {
       } else {
         setOffline(true)
       }
+      if (result?.currentCreatorWallet) {
+        setCreatorWallet(result.currentCreatorWallet)
+      }
     })
   }, [])
 
@@ -26,7 +35,7 @@ export default function Dashboard() {
     setTipping(true)
     setTipResult(null)
     try {
-      const result = await sendManualTip(tipReason)
+      const result = await sendManualTip(tipReason, creatorWallet?.evm ?? undefined)
       if (result.success) {
         setTipResult(`✓ Tip sent!${result.hash ? ' ' + result.hash.slice(0, 8) + '...' : ''}`)
         setTipReason('')
@@ -60,6 +69,30 @@ export default function Dashboard() {
       {offline && (
         <div style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.25)', borderRadius: 8, padding: 10, marginBottom: 12, fontSize: 12, color: '#f87171' }}>
           Agent offline — make sure the Tipble agent is running.
+        </div>
+      )}
+
+      {/* Creator wallet detection status */}
+      {creatorWallet?.evm ? (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(0,200,255,0.06)', border: '1px solid rgba(0,200,255,0.2)', borderRadius: 8, padding: '8px 10px', marginBottom: 10 }}>
+          <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 10, background: 'rgba(0,200,255,0.1)', color: '#00C8FF', border: '1px solid rgba(0,200,255,0.3)', whiteSpace: 'nowrap' }}>
+            ● Wallet detected
+          </span>
+          <span style={{ fontSize: 11, fontFamily: 'monospace', color: '#5e8fbe', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {creatorWallet.evm.slice(0, 6)}...{creatorWallet.evm.slice(-4)}
+          </span>
+          <span style={{ fontSize: 10, color: '#3a6a96', marginLeft: 'auto', whiteSpace: 'nowrap' }}>Tips go here</span>
+        </div>
+      ) : (
+        <div style={{ background: 'rgba(239,159,39,0.06)', border: '1px solid rgba(239,159,39,0.2)', borderRadius: 8, padding: '8px 10px', marginBottom: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+            <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 10, background: 'rgba(239,159,39,0.1)', color: '#EF9F27', border: '1px solid rgba(239,159,39,0.3)' }}>
+              No creator wallet
+            </span>
+          </div>
+          <div style={{ fontSize: 11, color: '#5e8fbe', lineHeight: 1.4 }}>
+            Visit a Rumble video page with Rumble Wallet enabled to auto-detect creator address
+          </div>
         </div>
       )}
 

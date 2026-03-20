@@ -1,5 +1,6 @@
 import { getSettings } from '../lib/storage'
 import { fetchStatus } from '../lib/api'
+
 let lastTipId = ''
 
 chrome.runtime.onInstalled.addListener(() => {
@@ -52,12 +53,10 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
       lastTipId = latestTip.id
     }
 
-
-
     chrome.action.setBadgeText({
       text: status.tipsCount > 0 ? status.tipsCount.toString() : ''
     })
-    chrome.action.setBadgeBackgroundColor({ color: '#5dcaa5' })
+    chrome.action.setBadgeBackgroundColor({ color: '#00C8FF' })
 
     chrome.storage.local.set({
       cachedStatus: status,
@@ -75,9 +74,19 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message.type === 'GET_STATUS') {
-    chrome.storage.local.get(['cachedStatus', 'lastPolled'], (result) =>
+    chrome.storage.local.get(['cachedStatus', 'lastPolled', 'currentCreatorWallet', 'currentPageUrl'], (result) =>
       sendResponse(result)
     )
+    return true
+  }
+
+  if (message.type === 'CREATOR_WALLET_DETECTED') {
+    chrome.storage.local.set({
+      currentCreatorWallet: message.addresses,
+      currentPageUrl: message.pageUrl
+    })
+    console.log('[Tipble BG] Creator wallet stored:', message.addresses)
+    sendResponse({ success: true })
     return true
   }
 

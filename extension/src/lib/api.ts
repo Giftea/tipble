@@ -15,7 +15,8 @@ export async function fetchStatus(): Promise<AgentStatus> {
 }
 
 export async function sendManualTip(
-  reason: string
+  reason: string,
+  creatorAddress?: string
 ): Promise<{ success: boolean; hash?: string }> {
   const url = await getAgentUrl()
   const seed = await getSeedPhrase()
@@ -23,10 +24,12 @@ export async function sendManualTip(
     'Content-Type': 'application/json',
     ...(seed ? { 'x-seed-phrase': seed } : {})
   }
+  const body: Record<string, string> = { reason }
+  if (creatorAddress) body.creatorAddress = creatorAddress
   const res = await fetch(`${url}/api/tip/manual`, {
     method: 'POST',
     headers,
-    body: JSON.stringify({ reason })
+    body: JSON.stringify(body)
   })
   return res.json()
 }

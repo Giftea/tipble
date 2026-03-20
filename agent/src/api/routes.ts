@@ -46,6 +46,7 @@ router.post("/config", (req, res) => {
 
 router.post("/tip/manual", async (req, res) => {
   const config = getConfig()
+  const creatorAddress = (req.body.creatorAddress as string) || undefined
   const decision = {
     shouldTip: true,
     amount: config.rules.newSubscriber.tipAmount,
@@ -54,7 +55,7 @@ router.post("/tip/manual", async (req, res) => {
     eventType: "manual",
     confidence: 1.0,
   }
-  const result = await executeTip(decision)
+  const result = await executeTip(decision, creatorAddress)
   res.json(
     result
       ? { success: true, hash: result.hash }

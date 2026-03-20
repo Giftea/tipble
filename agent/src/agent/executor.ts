@@ -3,11 +3,11 @@ import { getConfig } from "../config/loader.js"
 import { getTodayTotal } from "../storage/tiplog.js"
 import type { TipDecision } from "../rumble/types.js"
 
-export async function executeTip(decision: TipDecision): Promise<{ hash: string } | null> {
+export async function executeTip(decision: TipDecision, overrideCreatorAddress?: string): Promise<{ hash: string } | null> {
   if (!decision.shouldTip) return null
 
   const config = getConfig()
-  const creatorAddress = config.creator.walletAddress
+  const creatorAddress = overrideCreatorAddress || config.creator.walletAddress
 
   if (!creatorAddress) {
     console.log("[executor] ⚠️ No creator wallet configured")
