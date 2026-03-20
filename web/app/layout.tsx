@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   title: "Tipble",
   description: "Autonomous tipping agent dashboard",
   icons: {
-    icon: "/favicon.png",
+    icon: "/favicon.svg",
   },
 };
 

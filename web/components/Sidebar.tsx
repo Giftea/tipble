@@ -39,7 +39,7 @@ export default function Sidebar() {
           priority
         />
         <Image
-          src="/tipble.svg"
+          src="/favicon.svg"
           alt="Tipble"
           width={28}
           height={28}
