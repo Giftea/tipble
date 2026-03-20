@@ -3,16 +3,18 @@ import { getConfig } from "../config/loader.js"
 import { getTodayTotal } from "../storage/tiplog.js"
 import type { TipDecision } from "../rumble/types.js"
 
-export async function executeTip(decision: TipDecision, overrideCreatorAddress?: string): Promise<{ hash: string } | null> {
+export async function executeTip(decision: TipDecision, overrideAddress?: string): Promise<{ hash: string } | null> {
   if (!decision.shouldTip) return null
 
   const config = getConfig()
-  const creatorAddress = overrideCreatorAddress || config.creator.walletAddress
+  const addressUsed = overrideAddress || config.creator.walletAddress
 
-  if (!creatorAddress) {
+  if (!addressUsed) {
     console.log("[executor] ⚠️ No creator wallet configured")
     return null
   }
+
+  console.log(`[executor] Tipping: ${addressUsed} (${overrideAddress ? 'from extension' : 'from config'})`)
 
   // Enforce daily limit
   const todayTotal = getTodayTotal()
@@ -38,7 +40,7 @@ export async function executeTip(decision: TipDecision, overrideCreatorAddress?:
 
   let hash: string
   try {
-    ;({ hash } = await sendTip(creatorAddress, weiAmount))
+    ;({ hash } = await sendTip(addressUsed, weiAmount))
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err)
     if (msg.includes("already known") || msg.includes("nonce too low")) {
@@ -49,7 +51,7 @@ export async function executeTip(decision: TipDecision, overrideCreatorAddress?:
   }
 
   console.log(
-    `[TIPBLE] ✅ ${decision.amount} ${decision.asset} → ${creatorAddress} | ${decision.reason} | tx: ${hash}`
+    `[TIPBLE] ✅ ${decision.amount} ${decision.asset} → ${addressUsed} | ${decision.reason} | tx: ${hash}`
   )
 
   return { hash }

@@ -16,16 +16,24 @@ export async function fetchStatus(): Promise<AgentStatus> {
 
 export async function sendManualTip(
   reason: string,
-  creatorAddress?: string
-): Promise<{ success: boolean; hash?: string }> {
+  amount?: string,
+  asset?: string
+): Promise<{ success: boolean; hash?: string; sentTo?: string; amount?: string; asset?: string; error?: string }> {
   const url = await getAgentUrl()
   const seed = await getSeedPhrase()
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
     ...(seed ? { 'x-seed-phrase': seed } : {})
   }
+
+  const stored = await chrome.storage.local.get('currentCreatorWallet')
+  const creatorAddress = stored.currentCreatorWallet?.evm ?? null
+
   const body: Record<string, string> = { reason }
   if (creatorAddress) body.creatorAddress = creatorAddress
+  if (amount) body.amount = amount
+  if (asset) body.asset = asset
+
   const res = await fetch(`${url}/api/tip/manual`, {
     method: 'POST',
     headers,

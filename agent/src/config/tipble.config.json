@@ -1,12 +1,18 @@
 {
   "creator": {
-    "walletAddress": "0x0f04161ac6daaaed77E5a96B82B21a7C38455CBa",
-    "displayName": "Demo Creator"
+    "walletAddress": "0x06a77fa0b1b1160a41c432f13930d8385d40e3c9",
+    "displayName": "Rumble Creator"
   },
   "rules": {
     "followerMilestones": {
       "enabled": true,
-      "milestones": [100, 500, 1000, 5000, 10000],
+      "milestones": [
+        100,
+        500,
+        1000,
+        5000,
+        10000
+      ],
       "tipAmount": "0.001",
       "asset": "ETH"
     },

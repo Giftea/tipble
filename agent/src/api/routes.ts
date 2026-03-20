@@ -1,5 +1,5 @@
 import { Router } from "express"
-import { tipLog, sessionTotal, isPaused, setIsPaused, resetSession } from "../agent/loop.js"
+import { tipLog, sessionTotal, isPaused, setIsPaused, resetSession, setCreatorAddress } from "../agent/loop.js"
 import { getConfig, saveConfig } from "../config/loader.js"
 import { getBalance } from "../wallet/balance.js"
 import { getAgentAddress, generateNewWallet } from "../wallet/setup.js"
@@ -45,22 +45,63 @@ router.post("/config", (req, res) => {
 })
 
 router.post("/tip/manual", async (req, res) => {
+  const { reason, creatorAddress, amount, asset } = req.body as {
+    reason?: string
+    creatorAddress?: string
+    amount?: string
+    asset?: string
+  }
   const config = getConfig()
-  const creatorAddress = (req.body.creatorAddress as string) || undefined
+
+  const targetAddress = creatorAddress || config.creator.walletAddress
+  if (!targetAddress) {
+    res.status(400).json({
+      success: false,
+      error: "No creator address. Visit a Rumble video with Wallet enabled."
+    })
+    return
+  }
+
+  const tipAmount = amount || config.rules.newSubscriber.tipAmount
+  const tipAsset = asset || config.rules.newSubscriber.asset
+
   const decision = {
     shouldTip: true,
-    amount: config.rules.newSubscriber.tipAmount,
-    asset: config.rules.newSubscriber.asset,
-    reason: (req.body.reason as string) ?? "Manual tip",
+    amount: tipAmount,
+    asset: tipAsset,
+    reason: reason ?? "Manual tip",
     eventType: "manual",
     confidence: 1.0,
   }
-  const result = await executeTip(decision, creatorAddress)
+  const result = await executeTip(decision, targetAddress)
   res.json(
     result
-      ? { success: true, hash: result.hash }
-      : { success: false, error: "No creator wallet set" }
+      ? { success: true, hash: result.hash, sentTo: targetAddress, amount: tipAmount, asset: tipAsset }
+      : { success: false, error: "Tip execution failed" }
   )
+})
+
+router.post("/creator/set", (req, res) => {
+  const { address, displayName, pageUrl } = req.body as {
+    address: string
+    displayName?: string
+    pageUrl?: string
+  }
+
+  if (!address || !address.startsWith('0x') || address.length !== 42) {
+    res.status(400).json({ success: false, error: "Invalid EVM address" })
+    return
+  }
+
+  const config = getConfig()
+  config.creator.walletAddress = address
+  if (displayName) config.creator.displayName = displayName
+  saveConfig(config)
+
+  setCreatorAddress(address)
+
+  console.log(`[api] Creator address updated to: ${address}${pageUrl ? ` (from ${pageUrl})` : ''}`)
+  res.json({ success: true, address })
 })
 
 // ── Agent control ─────────────────────────────────────────────

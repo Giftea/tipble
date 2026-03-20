@@ -81,12 +81,32 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   }
 
   if (message.type === 'CREATOR_WALLET_DETECTED') {
+    const { addresses, pageUrl } = message
+
     chrome.storage.local.set({
-      currentCreatorWallet: message.addresses,
-      currentPageUrl: message.pageUrl
+      currentCreatorWallet: addresses,
+      currentPageUrl: pageUrl
     })
-    console.log('[Tipble BG] Creator wallet stored:', message.addresses)
-    sendResponse({ success: true })
+
+    getSettings().then(async (settings) => {
+      try {
+        const res = await fetch(`${settings.agentApiUrl}/api/creator/set`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            address: addresses.evm,
+            btcAddress: addresses.btc,
+            pageUrl,
+            displayName: 'Rumble Creator'
+          })
+        })
+        const data = await res.json()
+        console.log('[Tipble BG] Creator address sent to agent:', data)
+      } catch (err) {
+        console.error('[Tipble BG] Failed to update agent:', err)
+      }
+      sendResponse({ success: true })
+    })
     return true
   }
 

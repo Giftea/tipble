@@ -20,11 +20,16 @@ export interface TipEvent {
 export const tipLog: TipEvent[] = loadTipLog()
 export let sessionTotal = 0
 export let isPaused = false
+export let overrideCreatorAddress: string | null = null
 
 export function setIsPaused(v: boolean) { isPaused = v }
 export function resetSession() {
   sessionTotal = 0
   tipLog.length = 0
+}
+export function setCreatorAddress(address: string): void {
+  overrideCreatorAddress = address
+  console.log('[agent] Creator address overridden:', address)
 }
 
 async function tick(prevState: StreamState, curr: StreamState): Promise<void> {
@@ -51,7 +56,7 @@ async function tick(prevState: StreamState, curr: StreamState): Promise<void> {
   const decision = await reasonAboutTip(prevState, curr, config)
 
   if (decision.shouldTip) {
-    const result = await executeTip(decision)
+    const result = await executeTip(decision, overrideCreatorAddress ?? undefined)
     if (result) {
       sessionTotal += parseFloat(decision.amount)
 

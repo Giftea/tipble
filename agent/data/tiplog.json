@@ -108,5 +108,175 @@
     "txHash": "0x37c1e7169244504daa121cfbc5fba0e19eedc2c0188e637430fb82e150e76ac6",
     "eventType": "new_subscriber",
     "confidence": 1
+  },
+  {
+    "id": "1774048777425",
+    "timestamp": "2026-03-20T23:19:37.425Z",
+    "reason": "Viewer spike from 120 to 210",
+    "amount": "0.0003",
+    "asset": "ETH",
+    "txHash": "0x04fff3a95c633412cdbbf41c57e9a1add7f79bfeec850794b163dad17f268941",
+    "eventType": "viewerSpike",
+    "confidence": 0.9
+  },
+  {
+    "id": "1774048788036",
+    "timestamp": "2026-03-20T23:19:48.036Z",
+    "reason": "Viewer spike from 210 to 340",
+    "amount": "0.0003",
+    "asset": "ETH",
+    "txHash": "0x3905fe7ca8202f4840d01076921862a900583391ad6bd1488c40d7d3e2b4b1fd",
+    "eventType": "viewer_spike",
+    "confidence": 0.9
+  },
+  {
+    "id": "1774048797593",
+    "timestamp": "2026-03-20T23:19:57.593Z",
+    "reason": "Reached 1000 followers milestone",
+    "amount": "0.001",
+    "asset": "ETH",
+    "txHash": "0x1dfbf4aabfa894fa3b2074eb85d8a8a44bd1ff5e810c42312cfab28aeae08047",
+    "eventType": "follower_milestone",
+    "confidence": 1
+  },
+  {
+    "id": "1774048807178",
+    "timestamp": "2026-03-20T23:20:07.178Z",
+    "reason": "New subscriber CryptoFan42 joined the stream",
+    "amount": "0.0005",
+    "asset": "ETH",
+    "txHash": "0x91c0f813dc2800bf125c74e5858c075e2b6334daaa396c976f1de2950b0345a5",
+    "eventType": "new_subscriber",
+    "confidence": 1
+  },
+  {
+    "id": "1774048818833",
+    "timestamp": "2026-03-20T23:20:18.833Z",
+    "reason": "Viewer spike detected: 210 new viewers",
+    "amount": "0.0003",
+    "asset": "ETH",
+    "txHash": "0xd79eea873eaf7b00da978997fcd6558697b5d2864df08b4a609d9b9e9a37a137",
+    "eventType": "viewer_spike",
+    "confidence": 0.9
+  },
+  {
+    "id": "1774048846845",
+    "timestamp": "2026-03-20T23:20:46.845Z",
+    "reason": "New subscriber TipbleUser joined the stream",
+    "amount": "0.0005",
+    "asset": "ETH",
+    "txHash": "0xf5d2b7052688d4e5abd417cdf41fe0c090e5f39a3c5395abddfeca10f3781524",
+    "eventType": "new_subscriber",
+    "confidence": 1
+  },
+  {
+    "id": "1774049126225",
+    "timestamp": "2026-03-20T23:25:26.225Z",
+    "reason": "Viewer spike from 120 to 210",
+    "amount": "0.0003",
+    "asset": "ETH",
+    "txHash": "0xfad59a3db4d6c108e5880f498b1706a69b57e92056411623639e3902b64b1d96",
+    "eventType": "viewer_spike",
+    "confidence": 0.95
+  },
+  {
+    "id": "1774049136338",
+    "timestamp": "2026-03-20T23:25:36.338Z",
+    "reason": "Reached 1000 follower milestone",
+    "amount": "0.001",
+    "asset": "ETH",
+    "txHash": "0x2d9cc3b4b29115db2c0506935c896ca85ea061c6b6d3709e897d60dda700921a",
+    "eventType": "follower_milestone",
+    "confidence": 1
+  },
+  {
+    "id": "1774049145463",
+    "timestamp": "2026-03-20T23:25:45.463Z",
+    "reason": "Hit 1000 follower milestone",
+    "amount": "0.001",
+    "asset": "ETH",
+    "txHash": "0xc49544b44eb0922b9d2e45f2066c5a58b5673c10afbdbe9320c31dd0a0dd73bf",
+    "eventType": "follower_milestone",
+    "confidence": 1
+  },
+  {
+    "id": "1774049156118",
+    "timestamp": "2026-03-20T23:25:56.118Z",
+    "reason": "New subscriber CryptoFan42 joined the stream",
+    "amount": "0.0005",
+    "asset": "ETH",
+    "txHash": "0x91f8afae751f1505eeef44ed99efdb5715297e8d1abfdbf16c976c58b79c49a8",
+    "eventType": "new_subscriber",
+    "confidence": 1
+  },
+  {
+    "id": "1774049165609",
+    "timestamp": "2026-03-20T23:26:05.609Z",
+    "reason": "Viewer spike from 410 to 620",
+    "amount": "0.0003",
+    "asset": "ETH",
+    "txHash": "0xb7f284a7d40a297d501845d61f24aabea1cfcc35e9e40954a1ecd1e7b2a69a87",
+    "eventType": "viewer_spike",
+    "confidence": 0.9
+  },
+  {
+    "id": "1774049529467",
+    "timestamp": "2026-03-20T23:32:09.467Z",
+    "reason": "Viewer count spiked from 120 to 210",
+    "amount": "0.0003",
+    "asset": "ETH",
+    "txHash": "0x811ad1da30cd844f96fcf8f1fc42658ff3fa4a67b880ffef329e91c259cf21a2",
+    "eventType": "viewer_spike",
+    "confidence": 0.9
+  },
+  {
+    "id": "1774049539268",
+    "timestamp": "2026-03-20T23:32:19.268Z",
+    "reason": "Reached 1000 follower milestone",
+    "amount": "0.001",
+    "asset": "ETH",
+    "txHash": "0xcbe663b3d8c03a9717ffc57cba9dc4b973273b2ed5bcb176095382616771f688",
+    "eventType": "follower_milestone",
+    "confidence": 1
+  },
+  {
+    "id": "1774049549383",
+    "timestamp": "2026-03-20T23:32:29.383Z",
+    "reason": "Reached 1000 followers milestone",
+    "amount": "0.001",
+    "asset": "ETH",
+    "txHash": "0x600a04a99376ed85fc9d1427dccdb43c795bd65f5a3e216cf7394153eb35f628",
+    "eventType": "follower_milestone",
+    "confidence": 1
+  },
+  {
+    "id": "1774049559543",
+    "timestamp": "2026-03-20T23:32:39.543Z",
+    "reason": "New subscriber CryptoFan42 joined the stream",
+    "amount": "0.0005",
+    "asset": "ETH",
+    "txHash": "0x4dbb1c5a394e7280e9e0c89fb00aabc1fbb8189916d50617ab3c9d33860e2133",
+    "eventType": "new_subscriber",
+    "confidence": 1
+  },
+  {
+    "id": "1774049570559",
+    "timestamp": "2026-03-20T23:32:50.559Z",
+    "reason": "Viewer count spiked from 410 to 620",
+    "amount": "0.0003",
+    "asset": "ETH",
+    "txHash": "0x2d00564f60259cf922bd007415529209bda2d9c1ab88c4c889d9d782275c33a7",
+    "eventType": "viewer_spike",
+    "confidence": 0.9
+  },
+  {
+    "id": "1774049589304",
+    "timestamp": "2026-03-20T23:33:09.304Z",
+    "reason": "New subscriber TipbleUser joined the stream",
+    "amount": "0.0005",
+    "asset": "ETH",
+    "txHash": "0x4c4b0dd3326e785b742dc1aecaed2962472bbb47ddb7e0da2dbfa1c564cdf4a5",
+    "eventType": "new_subscriber",
+    "confidence": 1
   }
 ]

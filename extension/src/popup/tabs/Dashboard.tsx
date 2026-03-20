@@ -7,14 +7,29 @@ interface CreatorWallet {
   btc: string | null
 }
 
+interface TipSuccess {
+  hash: string
+  sentTo: string
+  amount: string
+  asset: string
+}
+
+function explorerUrl(hash: string, network: string): string {
+  if (network === 'polygon') return `https://polygonscan.com/tx/${hash}`
+  return `https://sepolia.etherscan.io/tx/${hash}`
+}
+
 export default function Dashboard() {
   const [status, setStatus] = useState<AgentStatus | null>(null)
   const [offline, setOffline] = useState(false)
   const [creatorWallet, setCreatorWallet] = useState<CreatorWallet | null>(null)
   const [showTipForm, setShowTipForm] = useState(false)
   const [tipReason, setTipReason] = useState('')
+  const [tipAmount, setTipAmount] = useState('0.50')
+  const [tipAsset, setTipAsset] = useState('ETH')
   const [tipping, setTipping] = useState(false)
-  const [tipResult, setTipResult] = useState<string | null>(null)
+  const [tipError, setTipError] = useState<string | null>(null)
+  const [tipSuccess, setTipSuccess] = useState<TipSuccess | null>(null)
 
   useEffect(() => {
     chrome.runtime.sendMessage({ type: 'GET_STATUS' }, (result) => {
@@ -30,21 +45,34 @@ export default function Dashboard() {
     })
   }, [])
 
+  function resetForm() {
+    setTipReason('')
+    setTipAmount('0.50')
+    setTipAsset('ETH')
+    setTipError(null)
+    setTipSuccess(null)
+    setShowTipForm(false)
+  }
+
   async function handleSendTip() {
-    if (!tipReason.trim()) return
     setTipping(true)
-    setTipResult(null)
+    setTipError(null)
+    setTipSuccess(null)
     try {
-      const result = await sendManualTip(tipReason, creatorWallet?.evm ?? undefined)
-      if (result.success) {
-        setTipResult(`✓ Tip sent!${result.hash ? ' ' + result.hash.slice(0, 8) + '...' : ''}`)
-        setTipReason('')
-        setShowTipForm(false)
+      const result = await sendManualTip(tipReason || 'Manual tip', tipAmount, tipAsset)
+      if (result.success && result.hash) {
+        setTipSuccess({
+          hash: result.hash,
+          sentTo: result.sentTo ?? creatorWallet?.evm ?? '',
+          amount: result.amount ?? tipAmount,
+          asset: result.asset ?? tipAsset
+        })
+        setTimeout(resetForm, 3000)
       } else {
-        setTipResult('✗ Failed to send tip')
+        setTipError(result.error ?? 'Tip failed')
       }
     } catch {
-      setTipResult('✗ Error sending tip')
+      setTipError('Could not reach agent')
     }
     setTipping(false)
   }
@@ -166,52 +194,125 @@ export default function Dashboard() {
         </>
       )}
 
-      {/* Tip result */}
-      {tipResult && (
-        <div style={{ fontSize: 12, color: tipResult.startsWith('✓') ? '#00C8FF' : '#f87171', marginBottom: 8, textAlign: 'center' }}>
-          {tipResult}
-        </div>
-      )}
-
       {/* Send Tip */}
       {showTipForm ? (
         <div style={{ background: '#050d1e', border: '1px solid #0b1e38', borderRadius: 8, padding: 10 }}>
-          <div style={{ fontSize: 11, color: '#5e8fbe', marginBottom: 6 }}>Reason for tip</div>
-          <input
-            value={tipReason}
-            onChange={e => setTipReason(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleSendTip()}
-            placeholder="e.g. Great stream content"
-            autoFocus
-            style={{
-              width: '100%', boxSizing: 'border-box',
-              background: '#020810', border: '1px solid #0b1e38',
-              borderRadius: 6, padding: '8px 10px',
-              color: '#e8f4ff', fontSize: 13, marginBottom: 8, outline: 'none'
-            }}
-          />
-          <div style={{ display: 'flex', gap: 6 }}>
-            <button
-              onClick={() => { setShowTipForm(false); setTipReason('') }}
-              style={{ flex: 1, padding: '8px 0', background: '#0b1e38', border: '1px solid #122f52', borderRadius: 6, color: '#5e8fbe', cursor: 'pointer', fontSize: 12 }}
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleSendTip}
-              disabled={tipping || !tipReason.trim()}
-              style={{
-                flex: 2, padding: '8px 0',
-                background: tipping || !tipReason.trim() ? 'rgba(239,159,39,0.3)' : '#EF9F27',
-                border: 'none', borderRadius: 6,
-                color: tipping || !tipReason.trim() ? '#5e8fbe' : '#020810',
-                cursor: tipping ? 'not-allowed' : 'pointer',
-                fontSize: 12, fontWeight: 600
-              }}
-            >
-              {tipping ? 'Sending...' : 'Send Tip'}
-            </button>
-          </div>
+
+          {/* Success state */}
+          {tipSuccess ? (
+            <div style={{ textAlign: 'center', padding: '8px 0' }}>
+              <div style={{ fontSize: 13, color: '#00C8FF', fontWeight: 600, marginBottom: 6 }}>
+                ✅ {tipSuccess.amount} {tipSuccess.asset} sent!
+              </div>
+              <div style={{ fontSize: 11, color: '#5e8fbe', marginBottom: 6 }}>
+                → {tipSuccess.sentTo.slice(0, 6)}...{tipSuccess.sentTo.slice(-4)}
+              </div>
+              <a
+                href={explorerUrl(tipSuccess.hash, status?.network ?? 'sepolia')}
+                target="_blank"
+                rel="noreferrer"
+                style={{ fontSize: 10, color: '#3a6a96', fontFamily: 'monospace', textDecoration: 'none' }}
+              >
+                {tipSuccess.hash.slice(0, 10)}... ↗
+              </a>
+            </div>
+          ) : (
+            <>
+              {/* Amount + Asset row */}
+              <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 11, color: '#5e8fbe', marginBottom: 4 }}>Amount</div>
+                  <input
+                    type="number"
+                    value={tipAmount}
+                    onChange={e => setTipAmount(e.target.value)}
+                    min="0.01"
+                    step="0.01"
+                    placeholder="0.50"
+                    style={{
+                      width: '100%', boxSizing: 'border-box',
+                      background: '#020810', border: '1px solid #0b1e38',
+                      borderRadius: 6, padding: '7px 8px',
+                      color: '#e8f4ff', fontSize: 13, outline: 'none'
+                    }}
+                  />
+                </div>
+                <div style={{ width: 80 }}>
+                  <div style={{ fontSize: 11, color: '#5e8fbe', marginBottom: 4 }}>Asset</div>
+                  <select
+                    value={tipAsset}
+                    onChange={e => setTipAsset(e.target.value)}
+                    style={{
+                      width: '100%', background: '#020810', border: '1px solid #0b1e38',
+                      borderRadius: 6, padding: '7px 6px',
+                      color: '#e8f4ff', fontSize: 13, outline: 'none'
+                    }}
+                  >
+                    <option value="ETH">ETH</option>
+                    <option value="USDT">USDT</option>
+                    <option value="XAUT">XAUT</option>
+                    <option value="BTC">BTC</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Reason */}
+              <div style={{ fontSize: 11, color: '#5e8fbe', marginBottom: 4 }}>Reason for tip</div>
+              <input
+                value={tipReason}
+                onChange={e => setTipReason(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleSendTip()}
+                placeholder="e.g. Great stream content"
+                autoFocus
+                style={{
+                  width: '100%', boxSizing: 'border-box',
+                  background: '#020810', border: '1px solid #0b1e38',
+                  borderRadius: 6, padding: '7px 8px',
+                  color: '#e8f4ff', fontSize: 13, marginBottom: 8, outline: 'none'
+                }}
+              />
+
+              {/* Creator address hint / warning */}
+              {creatorWallet?.evm ? (
+                <div style={{ fontSize: 10, color: '#00C8FF', marginBottom: 8 }}>
+                  Tipping: {creatorWallet.evm.slice(0, 6)}...{creatorWallet.evm.slice(-4)}
+                </div>
+              ) : (
+                <div style={{ fontSize: 10, color: '#EF9F27', marginBottom: 8 }}>
+                  ⚠ No creator detected. Visit a Rumble video page first.
+                </div>
+              )}
+
+              {/* Error */}
+              {tipError && (
+                <div style={{ fontSize: 11, color: '#f87171', marginBottom: 8 }}>{tipError}</div>
+              )}
+
+              {/* Buttons */}
+              <div style={{ display: 'flex', gap: 6 }}>
+                <button
+                  onClick={resetForm}
+                  style={{ flex: 1, padding: '8px 0', background: '#0b1e38', border: '1px solid #122f52', borderRadius: 6, color: '#5e8fbe', cursor: 'pointer', fontSize: 12 }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSendTip}
+                  disabled={tipping || !creatorWallet?.evm}
+                  style={{
+                    flex: 2, padding: '8px 0',
+                    background: tipping || !creatorWallet?.evm ? 'rgba(239,159,39,0.25)' : '#EF9F27',
+                    border: 'none', borderRadius: 6,
+                    color: tipping || !creatorWallet?.evm ? '#5e8fbe' : '#020810',
+                    cursor: tipping || !creatorWallet?.evm ? 'not-allowed' : 'pointer',
+                    fontSize: 12, fontWeight: 600
+                  }}
+                >
+                  {tipping ? 'Sending...' : 'Send Tip'}
+                </button>
+              </div>
+            </>
+          )}
         </div>
       ) : (
         <button
