@@ -14,7 +14,7 @@ export default function AgentLog({ tips }: AgentLogProps) {
       ) : (
         <div className="flex flex-col gap-1">
           {tips.map((tip) => (
-            <p key={tip.id} className="font-mono text-xs text-[#5dcaa5]">
+            <p key={tip.id} className="font-mono text-xs text-[#00C8FF]">
               [{formatTime(tip.timestamp)}] ✅ {tip.amount} {tip.asset} → {tip.reason}{" "}
               (confidence: {tip.confidence.toFixed(2)})
             </p>

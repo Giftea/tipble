@@ -219,7 +219,7 @@ export default function SettingsPage() {
         <Button
           onClick={handleSave}
           disabled={saving}
-          style={{ backgroundColor: "#5dcaa5" }}
+          style={{ backgroundColor: "#00C8FF" }}
           className="text-zinc-950 font-semibold hover:opacity-90 disabled:opacity-50"
         >
           {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
@@ -244,7 +244,7 @@ export default function SettingsPage() {
               onChange={(e) => set("seedPhrase", e.target.value)}
               placeholder="Enter your seed phrase or generate a new one..."
               rows={3}
-              className="w-full rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white placeholder:text-zinc-500 font-mono resize-none focus:outline-none focus:ring-1 focus:ring-[#5dcaa5]"
+              className="w-full rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white placeholder:text-zinc-500 font-mono resize-none focus:outline-none focus:ring-1 focus:ring-[#00C8FF]"
               style={{ WebkitTextSecurity: "disc" } as React.CSSProperties}
             />
             <p className="text-xs text-zinc-500">Never share your seed phrase with anyone</p>
@@ -264,7 +264,7 @@ export default function SettingsPage() {
             <Button
               onClick={handleSaveSeedPhrase}
               disabled={!form.seedPhrase}
-              style={{ backgroundColor: "#5dcaa5" }}
+              style={{ backgroundColor: "#00C8FF" }}
               className="text-zinc-950 font-semibold hover:opacity-90 disabled:opacity-40"
             >
               Save Seed Phrase
@@ -282,13 +282,13 @@ export default function SettingsPage() {
                   onClick={() => set("network", n)}
                   className={`flex items-center gap-2 rounded-md border px-3 py-2 text-sm transition-colors ${
                     form.network === n
-                      ? "border-[#5dcaa5] bg-[#5dcaa5]/10 text-[#5dcaa5]"
+                      ? "border-[#00C8FF] bg-[#00C8FF]/10 text-[#00C8FF]"
                       : "border-zinc-700 bg-zinc-800 text-zinc-400 hover:border-zinc-600"
                   }`}
                 >
                   <span
                     className={`h-2 w-2 rounded-full ${
-                      form.network === n ? "bg-[#5dcaa5]" : "bg-zinc-600"
+                      form.network === n ? "bg-[#00C8FF]" : "bg-zinc-600"
                     }`}
                   />
                   <span className="capitalize">{n}</span>
@@ -400,7 +400,7 @@ export default function SettingsPage() {
               <Switch
                 checked={checked}
                 onCheckedChange={onChange}
-                className="data-[state=checked]:bg-[#5dcaa5]"
+                className="data-[state=checked]:bg-[#00C8FF]"
               />
             </div>
           ))}
@@ -436,7 +436,7 @@ export default function SettingsPage() {
             <Switch
               checked={form.llmEnabled}
               onCheckedChange={(v) => set("llmEnabled", v)}
-              className="data-[state=checked]:bg-[#5dcaa5]"
+              className="data-[state=checked]:bg-[#00C8FF]"
             />
           </div>
           <div className="space-y-1.5">
@@ -489,7 +489,7 @@ export default function SettingsPage() {
           <div className="space-y-4 py-2">
             <div className="space-y-1.5">
               <p className="text-xs text-zinc-400 uppercase tracking-wide">Address</p>
-              <p className="font-mono text-sm text-[#5dcaa5] break-all">
+              <p className="font-mono text-sm text-[#00C8FF] break-all">
                 {generatedWallet?.address}
               </p>
             </div>
@@ -509,7 +509,7 @@ export default function SettingsPage() {
                 if (generatedWallet) set("seedPhrase", generatedWallet.seedPhrase)
                 setGeneratedWallet(null)
               }}
-              style={{ backgroundColor: "#5dcaa5" }}
+              style={{ backgroundColor: "#00C8FF" }}
               className="text-zinc-950 font-semibold hover:opacity-90"
             >
               Use This Wallet

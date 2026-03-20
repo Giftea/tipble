@@ -27,9 +27,9 @@ export default function NavbarStatus() {
         style={
           data.network === "sepolia"
             ? {
-                color: "#5dcaa5",
-                borderColor: "#5dcaa5",
-                backgroundColor: "rgba(93,202,165,0.08)",
+                color: "#00C8FF",
+                borderColor: "#00C8FF",
+                backgroundColor: "rgba(0,200,255,0.08)",
               }
             : {
                 color: "#EF9F27",

@@ -41,12 +41,12 @@ export default function TipTable({ tips, network }: TipTableProps) {
             </TableCell>
             <TableCell
               className={`text-sm text-white ${
-                i === 0 ? "border-l-2 border-l-[#5dcaa5] pl-3" : ""
+                i === 0 ? "border-l-2 border-l-[#00C8FF] pl-3" : ""
               }`}
             >
               {tip.reason}
             </TableCell>
-            <TableCell className="font-mono text-sm text-[#5dcaa5]">
+            <TableCell className="font-mono text-sm text-[#00C8FF]">
               {tip.amount} {tip.asset}
             </TableCell>
             <TableCell className="font-mono text-xs text-zinc-400">

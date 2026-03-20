@@ -48,7 +48,7 @@ export default function Sidebar() {
               title={label}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm transition-colors border-l-[3px] ${
                 isActive
-                  ? "bg-zinc-800 text-white border-l-[#5dcaa5]"
+                  ? "bg-zinc-800 text-white border-l-[#00C8FF]"
                   : "bg-transparent text-zinc-400 hover:bg-zinc-800/50 border-transparent hover:text-zinc-200"
               } justify-center md:justify-start`}
             >
@@ -66,17 +66,17 @@ export default function Sidebar() {
           <div className="flex items-center gap-2 justify-center md:justify-start">
             <span className="relative flex h-2 w-2 flex-shrink-0">
               {data?.running && (
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#5dcaa5] opacity-75" />
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#00C8FF] opacity-75" />
               )}
               <span
                 className={`relative inline-flex h-2 w-2 rounded-full ${
-                  data?.running ? "bg-[#5dcaa5]" : "bg-red-500"
+                  data?.running ? "bg-[#00C8FF]" : "bg-red-500"
                 }`}
               />
             </span>
             <span
               className={`hidden md:inline text-xs font-medium ${
-                data?.running ? "text-[#5dcaa5]" : "text-red-400"
+                data?.running ? "text-[#00C8FF]" : "text-red-400"
               }`}
             >
               {data?.running ? "Running" : "Offline"}
@@ -91,9 +91,9 @@ export default function Sidebar() {
                 style={
                   data.network === "sepolia"
                     ? {
-                        color: "#5dcaa5",
-                        borderColor: "#5dcaa5",
-                        backgroundColor: "rgba(93,202,165,0.08)",
+                        color: "#00C8FF",
+                        borderColor: "#00C8FF",
+                        backgroundColor: "rgba(0,200,255,0.08)",
                       }
                     : {
                         color: "#EF9F27",
@@ -118,7 +118,7 @@ export default function Sidebar() {
       <div className="border-t border-zinc-800 px-4 py-4 hidden md:block">
         <p className="text-zinc-600 text-[11px]">Powered by</p>
         <p className="text-white text-xs font-bold mt-0.5">
-          <span className="text-[#5dcaa5]">₮</span> Tether WDK
+          <span className="text-[#00C8FF]">₮</span> Tether WDK
         </p>
       </div>
     </aside>

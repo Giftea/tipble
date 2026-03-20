@@ -8,7 +8,7 @@ interface MetricCardProps {
 }
 
 const subColorClass = {
-  green: "text-[#5dcaa5]",
+  green: "text-[#00C8FF]",
   amber: "text-[#EF9F27]",
   default: "text-zinc-400",
 }

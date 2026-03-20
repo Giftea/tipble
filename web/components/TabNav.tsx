@@ -23,7 +23,7 @@ export default function TabNav() {
             href={href}
             className={`px-4 py-3 text-sm font-medium transition-colors border-b-2 ${
               isActive
-                ? "border-[#5dcaa5] text-white"
+                ? "border-[#00C8FF] text-white"
                 : "border-transparent text-zinc-400 hover:text-zinc-200"
             }`}
           >
