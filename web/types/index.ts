@@ -54,6 +54,11 @@ export interface TipbleConfig {
       tipAmount: string
       asset: string
     }
+    newFollower: {
+      enabled: boolean
+      tipAmount: string
+      asset: string
+    }
   }
   budget: {
     maxTipPerEvent: string

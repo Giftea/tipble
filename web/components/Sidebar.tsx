@@ -1,10 +1,10 @@
 "use client"
 
+import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import useSWR from "swr"
 import { LayoutDashboard, Sliders, History, Settings } from "lucide-react"
-import { Separator } from "@/components/ui/separator"
 import type { AgentStatus } from "@/types"
 
 const NAV = [
@@ -30,10 +30,22 @@ export default function Sidebar() {
     <aside className="w-16 md:w-60 flex-shrink-0 h-screen bg-zinc-900 border-r border-zinc-800 flex flex-col overflow-hidden">
       {/* Logo */}
       <div className="px-4 md:px-6 py-5 border-b border-zinc-800 flex flex-col items-center md:items-start">
-        <p className="text-white font-bold text-lg leading-none">
-          <span>🦞</span>
-          <span className="hidden md:inline"> Tipble</span>
-        </p>
+        <Image
+          src="/tipble.svg"
+          alt="Tipble"
+          width={110}
+          height={32}
+          className="hidden md:block"
+          priority
+        />
+        <Image
+          src="/tipble.svg"
+          alt="Tipble"
+          width={28}
+          height={28}
+          className="md:hidden"
+          priority
+        />
         <p className="hidden md:block text-zinc-500 text-xs mt-1">v1.0.0</p>
       </div>
 
