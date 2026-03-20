@@ -15,7 +15,7 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean
       onClick={() => onChange(!checked)}
       style={{
         width: 34, height: 19, borderRadius: 10,
-        background: checked ? '#5dcaa5' : '#2a2a2a',
+        background: checked ? '#00C8FF' : '#0b1e38',
         position: 'relative', cursor: 'pointer', flexShrink: 0,
         transition: 'background 0.2s'
       }}
@@ -24,7 +24,8 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean
         position: 'absolute', top: 3,
         left: checked ? 17 : 3,
         width: 13, height: 13, borderRadius: '50%',
-        background: 'white', transition: 'left 0.2s'
+        background: checked ? '#020810' : '#3a6a96',
+        transition: 'left 0.2s'
       }} />
     </div>
   )
@@ -33,10 +34,10 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div style={{ marginBottom: 14 }}>
-      <div style={{ fontSize: 10, color: '#444', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>
+      <div style={{ fontSize: 10, color: '#3a6a96', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>
         {title}
       </div>
-      <div style={{ background: '#111', borderRadius: 8, overflow: 'hidden' }}>
+      <div style={{ background: '#050d1e', border: '1px solid #0b1e38', borderRadius: 8, overflow: 'hidden' }}>
         {children}
       </div>
     </div>
@@ -48,12 +49,19 @@ function Row({ label, children, last }: { label: string; children: React.ReactNo
     <div style={{
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       padding: '9px 10px',
-      borderBottom: last ? 'none' : '1px solid #0d0d0d'
+      borderBottom: last ? 'none' : '1px solid #0b1e38'
     }}>
-      <span style={{ fontSize: 12, color: '#bbb' }}>{label}</span>
+      <span style={{ fontSize: 12, color: '#88b0d6' }}>{label}</span>
       {children}
     </div>
   )
+}
+
+const inputStyle: React.CSSProperties = {
+  width: '100%', boxSizing: 'border-box',
+  background: '#020810', border: '1px solid #0b1e38',
+  borderRadius: 6, padding: '8px 10px',
+  color: '#e8f4ff', fontSize: 12, outline: 'none'
 }
 
 // ─── Wallet Section ───────────────────────────────────────────────────────────
@@ -141,25 +149,25 @@ function WalletSection() {
   if (address && hasSeed) {
     return (
       <Section title="Wallet">
-        <div style={{ padding: '9px 10px', borderBottom: '1px solid #0d0d0d' }}>
+        <div style={{ padding: '9px 10px', borderBottom: '1px solid #0b1e38' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-            <span style={{ fontSize: 10, padding: '2px 7px', borderRadius: 10, background: '#0d2d1e', color: '#5dcaa5', border: '1px solid #5dcaa530' }}>
+            <span style={{ fontSize: 10, padding: '2px 7px', borderRadius: 10, background: 'rgba(0,200,255,0.1)', color: '#00C8FF', border: '1px solid rgba(0,200,255,0.3)' }}>
               ● Connected
             </span>
           </div>
           <div
             onClick={() => copy(address)}
             title="Click to copy"
-            style={{ fontSize: 11, fontFamily: 'monospace', color: '#777', cursor: 'pointer', padding: '6px 8px', background: '#0a0a0a', borderRadius: 6, userSelect: 'none' }}
+            style={{ fontSize: 11, fontFamily: 'monospace', color: '#5e8fbe', cursor: 'pointer', padding: '6px 8px', background: '#020810', borderRadius: 6, userSelect: 'none', border: '1px solid #0b1e38' }}
           >
             {address.slice(0, 10)}...{address.slice(-8)}
-            <span style={{ marginLeft: 6, color: '#444' }}>{copied ? '✓' : '⎘'}</span>
+            <span style={{ marginLeft: 6, color: '#3a6a96' }}>{copied ? '✓' : '⎘'}</span>
           </div>
         </div>
         <div style={{ padding: '9px 10px' }}>
           <button
             onClick={handleDisconnect}
-            style={{ width: '100%', padding: '7px 0', background: 'transparent', border: '1px solid #3d1515', borderRadius: 6, color: '#E24B4A', cursor: 'pointer', fontSize: 12 }}
+            style={{ width: '100%', padding: '7px 0', background: 'transparent', border: '1px solid rgba(248,113,113,0.3)', borderRadius: 6, color: '#f87171', cursor: 'pointer', fontSize: 12 }}
           >
             Disconnect Wallet
           </button>
@@ -173,25 +181,25 @@ function WalletSection() {
     return (
       <Section title="Wallet">
         <div style={{ padding: 10 }}>
-          <div style={{ background: '#2d1f00', border: '1px solid #f59e0b40', borderRadius: 6, padding: 10, marginBottom: 10 }}>
-            <div style={{ fontSize: 11, color: '#f59e0b', marginBottom: 6, fontWeight: 600 }}>
+          <div style={{ background: 'rgba(239,159,39,0.08)', border: '1px solid rgba(239,159,39,0.3)', borderRadius: 6, padding: 10, marginBottom: 10 }}>
+            <div style={{ fontSize: 11, color: '#EF9F27', marginBottom: 6, fontWeight: 600 }}>
               ⚠️ Write this down — never share it
             </div>
-            <div style={{ fontSize: 12, fontFamily: 'monospace', color: '#fff', lineHeight: 1.7, wordBreak: 'break-word' }}>
+            <div style={{ fontSize: 12, fontFamily: 'monospace', color: '#e8f4ff', lineHeight: 1.7, wordBreak: 'break-word' }}>
               {generatedSeed}
             </div>
           </div>
           <div style={{ display: 'flex', gap: 6 }}>
             <button
               onClick={() => copy(generatedSeed)}
-              style={{ flex: 1, padding: '8px 0', background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: 6, color: '#bbb', cursor: 'pointer', fontSize: 12 }}
+              style={{ flex: 1, padding: '8px 0', background: '#0b1e38', border: '1px solid #122f52', borderRadius: 6, color: '#88b0d6', cursor: 'pointer', fontSize: 12 }}
             >
               {copied ? '✓ Copied' : 'Copy'}
             </button>
             <button
               onClick={handleSaveSeed}
               disabled={loading}
-              style={{ flex: 2, padding: '8px 0', background: '#5dcaa5', border: 'none', borderRadius: 6, color: '#000', cursor: 'pointer', fontSize: 12, fontWeight: 600 }}
+              style={{ flex: 2, padding: '8px 0', background: '#00C8FF', border: 'none', borderRadius: 6, color: '#020810', cursor: 'pointer', fontSize: 12, fontWeight: 600 }}
             >
               {loading ? 'Saving...' : "I've saved it"}
             </button>
@@ -208,29 +216,23 @@ function WalletSection() {
         <button
           onClick={handleGenerate}
           disabled={loading}
-          style={{ width: '100%', padding: '9px 0', background: '#5dcaa5', border: 'none', borderRadius: 6, color: '#000', cursor: loading ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 600, marginBottom: 10 }}
+          style={{ width: '100%', padding: '9px 0', background: '#00C8FF', border: 'none', borderRadius: 6, color: '#020810', cursor: loading ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 600, marginBottom: 10 }}
         >
           {loading ? 'Generating...' : 'Generate New Wallet'}
         </button>
 
-        <div style={{ fontSize: 11, color: '#333', textAlign: 'center', marginBottom: 10 }}>or import existing</div>
+        <div style={{ fontSize: 11, color: '#1e4a75', textAlign: 'center', marginBottom: 10 }}>or import existing</div>
 
         <textarea
           value={importText}
           onChange={e => setImportText(e.target.value)}
           placeholder="Enter your 12-word seed phrase"
           rows={3}
-          style={{
-            width: '100%', boxSizing: 'border-box',
-            background: '#0a0a0a', border: '1px solid #2a2a2a',
-            borderRadius: 6, padding: '8px 10px',
-            color: 'white', fontSize: 12, resize: 'none',
-            fontFamily: 'monospace', marginBottom: 6, outline: 'none'
-          }}
+          style={{ ...inputStyle, resize: 'none', fontFamily: 'monospace', marginBottom: 6 }}
         />
 
         {importError && (
-          <div style={{ fontSize: 11, color: '#E24B4A', marginBottom: 6 }}>{importError}</div>
+          <div style={{ fontSize: 11, color: '#f87171', marginBottom: 6 }}>{importError}</div>
         )}
 
         <button
@@ -238,8 +240,8 @@ function WalletSection() {
           disabled={loading || !importText.trim()}
           style={{
             width: '100%', padding: '9px 0',
-            background: '#1a1a1a', border: '1px solid #2a2a2a',
-            borderRadius: 6, color: loading || !importText.trim() ? '#444' : '#ccc',
+            background: '#0b1e38', border: '1px solid #122f52',
+            borderRadius: 6, color: loading || !importText.trim() ? '#1e4a75' : '#88b0d6',
             cursor: loading || !importText.trim() ? 'not-allowed' : 'pointer', fontSize: 12
           }}
         >
@@ -280,7 +282,7 @@ export default function Settings() {
   }
 
   if (!settings) {
-    return <div style={{ textAlign: 'center', color: '#444', padding: '32px 0', fontSize: 13 }}>Loading...</div>
+    return <div style={{ textAlign: 'center', color: '#5e8fbe', padding: '32px 0', fontSize: 13 }}>Loading...</div>
   }
 
   return (
@@ -292,12 +294,7 @@ export default function Settings() {
           <input
             value={settings.agentApiUrl}
             onChange={e => update({ agentApiUrl: e.target.value })}
-            style={{
-              width: '100%', boxSizing: 'border-box',
-              background: '#0a0a0a', border: '1px solid #2a2a2a',
-              borderRadius: 6, padding: '8px 10px',
-              color: 'white', fontSize: 12, fontFamily: 'monospace', outline: 'none'
-            }}
+            style={{ ...inputStyle, fontFamily: 'monospace' }}
           />
         </div>
       </Section>
@@ -322,11 +319,7 @@ export default function Settings() {
           <select
             value={settings.network}
             onChange={e => update({ network: e.target.value })}
-            style={{
-              width: '100%', background: '#0a0a0a', border: '1px solid #2a2a2a',
-              borderRadius: 6, padding: '8px 10px', color: 'white', fontSize: 12,
-              outline: 'none'
-            }}
+            style={{ ...inputStyle }}
           >
             <option value="sepolia">Sepolia (Testnet)</option>
             <option value="polygon">Polygon</option>
@@ -339,9 +332,10 @@ export default function Settings() {
         disabled={saving}
         style={{
           width: '100%', padding: '10px 0',
-          background: saved ? '#0d2d1e' : saving ? '#2a2a2a' : '#5dcaa5',
-          border: 'none', borderRadius: 8,
-          color: saved ? '#5dcaa5' : saving ? '#555' : '#000',
+          background: saved ? 'rgba(0,200,255,0.1)' : saving ? '#0b1e38' : '#00C8FF',
+          border: saved ? '1px solid rgba(0,200,255,0.3)' : 'none',
+          borderRadius: 8,
+          color: saved ? '#00C8FF' : saving ? '#5e8fbe' : '#020810',
           cursor: saving ? 'not-allowed' : 'pointer',
           fontSize: 13, fontWeight: 600, marginBottom: 14
         }}
@@ -349,7 +343,7 @@ export default function Settings() {
         {saved ? '✓ Settings Saved' : saving ? 'Saving...' : 'Save Settings'}
       </button>
 
-      <div style={{ textAlign: 'center', fontSize: 10, color: '#2a2a2a' }}>
+      <div style={{ textAlign: 'center', fontSize: 10, color: '#122f52' }}>
         Powered by Tether WDK
       </div>
     </div>

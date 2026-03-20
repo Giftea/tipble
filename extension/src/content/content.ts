@@ -1,55 +1,86 @@
+console.log('[Tipble] Content script loaded on:', window.location.href)
+
 import './content.css'
 
 // ─── Badge ───────────────────────────────────────────────────────────────────
 
-function injectBadge(): void {
-  if (document.getElementById('tipble-badge')) return
-
-  const player =
-    document.querySelector('.rumble-player') ??
-    document.querySelector('video')?.closest('div') ??
-    document.querySelector('video')?.parentElement
-
-  if (!player) {
-    const observer = new MutationObserver(() => {
-      const found =
-        document.querySelector('.rumble-player') ??
-        document.querySelector('video')?.closest('div') ??
-        document.querySelector('video')?.parentElement
-
-      if (found) {
-        observer.disconnect()
-        mountBadge(found as HTMLElement)
-      }
-    })
-    observer.observe(document.body, { childList: true, subtree: true })
-    return
-  }
-
-  mountBadge(player as HTMLElement)
-}
-
-function mountBadge(container: HTMLElement): void {
-  if (document.getElementById('tipble-badge')) return
-
-  if (getComputedStyle(container).position === 'static') {
-    container.style.position = 'relative'
-  }
+function injectBadge() {
+  const existing = document.getElementById('tipble-badge')
+  if (existing) existing.remove()
 
   const badge = document.createElement('div')
   badge.id = 'tipble-badge'
-  badge.innerHTML = '🦞 Tipble Active'
-  container.appendChild(badge)
+  badge.textContent = '🦞 Tipble Active'
+
+  badge.setAttribute('style', [
+    'position: fixed',
+    'top: 80px',
+    'right: 20px',
+    'z-index: 2147483647',
+    'background: rgba(0, 0, 0, 0.85)',
+    'color: #ffffff',
+    'padding: 6px 14px',
+    'border-radius: 20px',
+    'font-size: 13px',
+    'font-family: -apple-system, sans-serif',
+    'font-weight: 500',
+    'border: 1px solid rgba(93, 202, 165, 0.6)',
+    'pointer-events: none',
+    'display: flex',
+    'align-items: center',
+    'gap: 6px',
+    'box-shadow: 0 2px 8px rgba(0,0,0,0.5)'
+  ].join('; '))
+
+  const dot = document.createElement('span')
+  dot.setAttribute('style', [
+    'width: 7px',
+    'height: 7px',
+    'border-radius: 50%',
+    'background: #5dcaa5',
+    'display: inline-block',
+    'flex-shrink: 0'
+  ].join('; '))
+
+  badge.prepend(dot)
+
+  document.documentElement.appendChild(badge)
+  console.log('[Tipble] Badge injected, element:', badge)
 
   let seconds = 0
-  setInterval(() => {
+  const timer = setInterval(() => {
+    if (!document.getElementById('tipble-badge')) {
+      clearInterval(timer)
+      return
+    }
     seconds++
     const mins = Math.floor(seconds / 60)
     const secs = seconds % 60
-    const timeStr = `${mins}:${secs.toString().padStart(2, '0')}`
-    badge.innerHTML = `🦞 Tipble ⏱ ${timeStr}`
+    const time = `${mins}:${secs.toString().padStart(2, '0')}`
+    const textNode = badge.lastChild
+    if (textNode) textNode.textContent = ` Tipble ⏱ ${time}`
   }, 1000)
 }
+
+// Run immediately
+injectBadge()
+
+// Also run after DOM is fully loaded
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', injectBadge)
+} else {
+  injectBadge()
+}
+
+// Re-inject on Rumble SPA navigation
+let lastUrl = location.href
+new MutationObserver(() => {
+  const url = location.href
+  if (url !== lastUrl) {
+    lastUrl = url
+    setTimeout(injectBadge, 1000)
+  }
+}).observe(document, { subtree: true, childList: true })
 
 // ─── Toast ───────────────────────────────────────────────────────────────────
 
@@ -60,7 +91,7 @@ function showTipToast(tip: any): void {
   const toast = document.createElement('div')
   toast.id = 'tipble-toast'
   toast.innerHTML = `
-    <div class="tipble-toast-header">🦞 Tip Sent!</div>
+    <div class="tipble-toast-header"><img src="${chrome.runtime.getURL('icons/logo.svg')}" alt="Tipble" style="height:13px;width:auto;vertical-align:middle;margin-right:5px;">Tip Sent!</div>
     <div class="tipble-toast-amount">${tip.amount} ${tip.asset} → Creator</div>
     <div class="tipble-toast-meta">${tip.reason} · ${tip.txHash.slice(0, 6)}...${tip.txHash.slice(-4)}</div>
   `
@@ -79,17 +110,15 @@ function updateBadge(running: boolean): void {
   const badge = document.getElementById('tipble-badge')
   if (!badge) return
 
+  const dot = badge.querySelector('span')
   if (running) {
-    badge.style.borderColor = 'rgba(93, 202, 165, 0.4)'
-    badge.dataset.offline = 'false'
-    badge.innerHTML = '🦞 Tipble Active'
+    badge.style.borderColor = 'rgba(0, 200, 255, 0.6)'
+    if (dot) dot.style.background = '#00C8FF'
+    badge.lastChild!.textContent = ' Tipble Active'
   } else {
-    badge.style.borderColor = 'rgba(255,255,255,0.15)'
-    badge.dataset.offline = 'true'
-    badge.innerHTML = '🦞 Tipble Offline'
-    const dot = badge.querySelector<HTMLElement>('::before')
-    // CSS handles the dot; just mute the color via a class
-    badge.classList.add('tipble-offline')
+    badge.style.borderColor = 'rgba(255,255,255,0.2)'
+    if (dot) dot.style.background = '#5e8fbe'
+    badge.lastChild!.textContent = ' Tipble Offline'
   }
 }
 
@@ -104,30 +133,3 @@ chrome.runtime.onMessage.addListener((message) => {
     updateBadge(message.running)
   }
 })
-
-// ─── SPA navigation ──────────────────────────────────────────────────────────
-
-function isVideoPage(): boolean {
-  return /\/(v|live)\//.test(location.pathname)
-}
-
-function onNavigate(): void {
-  if (isVideoPage()) {
-    // Small delay to let the new page's DOM settle
-    setTimeout(injectBadge, 800)
-  }
-}
-
-const originalPushState = history.pushState.bind(history)
-history.pushState = function (...args) {
-  originalPushState(...args)
-  onNavigate()
-}
-
-window.addEventListener('popstate', onNavigate)
-
-// ─── Init ────────────────────────────────────────────────────────────────────
-
-if (isVideoPage()) {
-  injectBadge()
-}

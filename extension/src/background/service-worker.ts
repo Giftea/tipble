@@ -1,8 +1,5 @@
 import { getSettings } from '../lib/storage'
 import { fetchStatus } from '../lib/api'
-import type { AgentStatus, TipEvent } from '../types'
-
-let lastTipCount = 0
 let lastTipId = ''
 
 chrome.runtime.onInstalled.addListener(() => {
@@ -46,7 +43,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
           chrome.notifications.create({
             type: 'basic',
             iconUrl: 'icons/icon48.png',
-            title: '🦞 Tipble — Tip Sent!',
+            title: 'Tipble — Tip Sent!',
             message: `${latestTip.amount} ${latestTip.asset} → ${status.creator.displayName} | ${latestTip.reason}`
           })
         }
@@ -55,7 +52,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
       lastTipId = latestTip.id
     }
 
-    lastTipCount = status.tipsCount
+
 
     chrome.action.setBadgeText({
       text: status.tipsCount > 0 ? status.tipsCount.toString() : ''
@@ -76,7 +73,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
   }
 })
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message.type === 'GET_STATUS') {
     chrome.storage.local.get(['cachedStatus', 'lastPolled'], (result) =>
       sendResponse(result)

@@ -17,8 +17,8 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<Tab>('dashboard')
 
   return (
-    <div style={{ width: 380, minHeight: 500, background: '#0a0a0a', color: 'white', fontFamily: '-apple-system, sans-serif', overflow: 'hidden' }}>
-      <nav style={{ display: 'flex', borderBottom: '1px solid #1a1a1a', position: 'sticky', top: 0, background: '#0a0a0a', zIndex: 10 }}>
+    <div style={{ width: 380, minHeight: 500, background: '#020810', color: '#e8f4ff', fontFamily: '-apple-system, sans-serif', overflow: 'hidden' }}>
+      <nav style={{ display: 'flex', borderBottom: '1px solid #0b1e38', position: 'sticky', top: 0, background: '#020810', zIndex: 10 }}>
         {TABS.map(tab => (
           <button
             key={tab.id}
@@ -28,8 +28,8 @@ export default function App() {
               padding: '10px 0',
               background: 'none',
               border: 'none',
-              borderBottom: activeTab === tab.id ? '2px solid #5dcaa5' : '2px solid transparent',
-              color: activeTab === tab.id ? '#5dcaa5' : '#555',
+              borderBottom: activeTab === tab.id ? '2px solid #00C8FF' : '2px solid transparent',
+              color: activeTab === tab.id ? '#00C8FF' : '#5e8fbe',
               cursor: 'pointer',
               fontSize: 12,
               fontWeight: activeTab === tab.id ? 600 : 400,
