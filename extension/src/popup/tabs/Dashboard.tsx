@@ -5,6 +5,7 @@ import type { AgentStatus } from '../../types'
 interface CreatorWallet {
   evm: string | null
   btc: string | null
+  displayName?: string
 }
 
 interface TipSuccess {
@@ -24,6 +25,7 @@ export default function Dashboard() {
   const [status, setStatus] = useState<AgentStatus | null>(null)
   const [offline, setOffline] = useState(false)
   const [creatorWallet, setCreatorWallet] = useState<CreatorWallet | null>(null)
+  const [currentCreator, setCurrentCreator] = useState<{ evm: string | null; btc: string | null; displayName: string } | null>(null)
   const [usdtBalance, setUsdtBalance] = useState<string | null>(null)
   const [showTipForm, setShowTipForm] = useState(false)
   const [tipReason, setTipReason] = useState('')
@@ -46,6 +48,18 @@ export default function Dashboard() {
       }
     })
     fetchUsdtBalance().then(r => setUsdtBalance(r.balance)).catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    const loadCreator = async () => {
+      const result = await chrome.storage.local.get('currentCreatorWallet')
+      if (result.currentCreatorWallet) {
+        setCurrentCreator(result.currentCreatorWallet)
+      }
+    }
+    loadCreator()
+    const interval = setInterval(loadCreator, 3000)
+    return () => clearInterval(interval)
   }, [])
 
   function resetForm() {
@@ -109,10 +123,12 @@ export default function Dashboard() {
           <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 10, background: 'rgba(0,200,255,0.1)', color: '#00C8FF', border: '1px solid rgba(0,200,255,0.3)', whiteSpace: 'nowrap' }}>
             ● Wallet detected
           </span>
-          <span style={{ fontSize: 11, fontFamily: 'monospace', color: '#5e8fbe', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <span style={{ fontSize: 11, color: '#e8f4ff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {creatorWallet.displayName ?? 'Rumble Creator'}
+          </span>
+          <span style={{ fontSize: 10, fontFamily: 'monospace', color: '#3a6a96', marginLeft: 'auto', whiteSpace: 'nowrap' }}>
             {creatorWallet.evm.slice(0, 6)}...{creatorWallet.evm.slice(-4)}
           </span>
-          <span style={{ fontSize: 10, color: '#3a6a96', marginLeft: 'auto', whiteSpace: 'nowrap' }}>Tips go here</span>
         </div>
       ) : (
         <div style={{ background: 'rgba(239,159,39,0.06)', border: '1px solid rgba(239,159,39,0.2)', borderRadius: 8, padding: '8px 10px', marginBottom: 10 }}>
@@ -130,25 +146,31 @@ export default function Dashboard() {
       {status && (
         <>
           {/* Creator info */}
-          {status.creator?.walletAddress && <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#050d1e', border: '1px solid #0b1e38', borderRadius: 8, padding: 10, marginBottom: 8 }}>
-            <div style={{
-              width: 36, height: 36, borderRadius: '50%',
-              background: 'rgba(0,200,255,0.08)', border: '1px solid rgba(0,200,255,0.25)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 14, fontWeight: 700, color: '#00C8FF', flexShrink: 0
-            }}>
-              {status.creator?.displayName?.slice(0, 2).toUpperCase() ?? '??'}
-            </div>
-            <div style={{ minWidth: 0 }}>
-              <div style={{ fontSize: 13, fontWeight: 600, color: '#e8f4ff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {status.creator?.displayName ?? 'Unknown Creator'}
-              </div>
-              <div style={{ fontSize: 11, color: '#5e8fbe', fontFamily: 'monospace' }}>
-                {status.creator?.walletAddress
-                  ? `${status.creator.walletAddress.slice(0, 6)}...${status.creator.walletAddress.slice(-4)}`
-                  : 'No address'}
-              </div>
-            </div>
+          {(currentCreator?.evm || status.creator?.walletAddress) && <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#050d1e', border: '1px solid #0b1e38', borderRadius: 8, padding: 10, marginBottom: 8 }}>
+            {(() => {
+              const name = currentCreator?.displayName ?? status.creator?.displayName ?? 'No creator detected'
+              const address = currentCreator?.evm ?? status.creator?.walletAddress ?? ''
+              return (
+                <>
+                  <div style={{
+                    width: 36, height: 36, borderRadius: '50%',
+                    background: 'rgba(0,200,255,0.08)', border: '1px solid rgba(0,200,255,0.25)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 14, fontWeight: 700, color: '#00C8FF', flexShrink: 0
+                  }}>
+                    {name.slice(0, 2).toUpperCase()}
+                  </div>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: '#e8f4ff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {name}
+                    </div>
+                    <div style={{ fontSize: 11, color: '#5e8fbe', fontFamily: 'monospace' }}>
+                      {address ? `${address.slice(0, 6)}...${address.slice(-4)}` : 'No address'}
+                    </div>
+                  </div>
+                </>
+              )
+            })()}
             {status.demoMode && (
               <span style={{ marginLeft: 'auto', fontSize: 10, padding: '2px 6px', borderRadius: 4, background: 'rgba(239,159,39,0.12)', color: '#EF9F27', border: '1px solid rgba(239,159,39,0.3)', flexShrink: 0 }}>
                 DEMO

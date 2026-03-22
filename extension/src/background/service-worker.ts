@@ -73,19 +73,22 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message.type === 'GET_STATUS') {
-    chrome.storage.local.get(['cachedStatus', 'lastPolled'], (local) => {
-      chrome.storage.session.get(['currentCreatorWallet', 'currentPageUrl'], (session) => {
-        sendResponse({ ...local, ...session })
-      })
+    chrome.storage.local.get(['cachedStatus', 'lastPolled', 'currentCreatorWallet', 'currentPageUrl'], (data) => {
+      sendResponse(data)
     })
     return true
   }
 
   if (message.type === 'CREATOR_WALLET_DETECTED') {
-    const { addresses, pageUrl } = message
+    const { addresses, creatorName, pageUrl } = message
+    console.log('[BG] Creator detected:', addresses, creatorName)
 
-    chrome.storage.session.set({
-      currentCreatorWallet: addresses,
+    chrome.storage.local.set({
+      currentCreatorWallet: {
+        evm: addresses.evm,
+        btc: addresses.btc,
+        displayName: creatorName ?? 'Rumble Creator'
+      },
       currentPageUrl: pageUrl
     })
 
@@ -98,7 +101,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
             address: addresses.evm,
             btcAddress: addresses.btc,
             pageUrl,
-            displayName: 'Rumble Creator'
+            displayName: creatorName ?? 'Rumble Creator'
           })
         })
         await res.json()
@@ -111,7 +114,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   }
 
   if (message.type === 'CLEAR_CREATOR_WALLET') {
-    chrome.storage.session.remove(['currentCreatorWallet', 'currentPageUrl'])
+    chrome.storage.local.remove(['currentCreatorWallet', 'currentPageUrl'])
 
     getSettings().then(async (settings) => {
       try {

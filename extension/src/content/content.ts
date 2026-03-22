@@ -78,19 +78,19 @@ function injectBadge() {
 
 // ─── Creator wallet detection ─────────────────────────────────────────────────
 
-async function detectCreatorWallet(): Promise<{ evm: string | null; btc: string | null }> {
+async function detectCreatorWallet(): Promise<{ evm: string | null; btc: string | null; displayName: string }> {
   // Step 1 - Find tip button (wildcard match)
   const tipButton =
     document.querySelector('button[hx-get*="qr-modal"]') ||
     document.querySelector('[hx-get*="qr-modal"]')
-  if (!tipButton) return { evm: null, btc: null }
+  if (!tipButton) return { evm: null, btc: null, displayName: 'Rumble Creator' }
 
   // Step 2 - Extract eid
   const hxValsRaw = tipButton.getAttribute('hx-vals')
   const hxVals = JSON.parse(hxValsRaw || '{}')
   const eid = hxVals.eid
   const dt = hxVals.dt
-  if (!eid) return { evm: null, btc: null }
+  if (!eid) return { evm: null, btc: null, displayName: 'Rumble Creator' }
 
   // Step 3 - Fetch QR modal
   const modalUrl =
@@ -101,11 +101,21 @@ async function detectCreatorWallet(): Promise<{ evm: string | null; btc: string 
     const modalRes = await fetch(modalUrl, { credentials: 'include' })
     const modalHtml = await modalRes.text()
 
+    // Step 3b - Extract creator display name
+    const nameMatch = modalHtml.match(/title="([^"]+)"/)
+    const creatorName = (
+      nameMatch?.[1] &&
+      nameMatch[1] !== 'Close Modal' &&
+      nameMatch[1].length > 1 &&
+      nameMatch[1].length < 60
+    ) ? nameMatch[1] : 'Rumble Creator'
+    console.log('[Tipble] Creator name:', creatorName)
+
     // Step 4 - Extract payment_url (try two patterns)
     const paymentUrlMatch =
       modalHtml.match(/payment_url&#34;:&#34;(https:\/\/pay\.rumble\.com\/\?[^&]*(?:&amp;[^&"']*)*)/) ??
       modalHtml.match(/href="(https:\/\/pay\.rumble\.com\/\?[^"]+)"/)
-    if (!paymentUrlMatch) return { evm: null, btc: null }
+    if (!paymentUrlMatch) return { evm: null, btc: null, displayName: creatorName }
 
     const paymentUrl = paymentUrlMatch[1]
       .replace(/&amp;/g, '&')
@@ -176,9 +186,9 @@ async function detectCreatorWallet(): Promise<{ evm: string | null; btc: string 
         /(?:"address"|&#34;address&#34;)\s*:\s*(?:"|&#34;)(bc1[a-zA-HJ-NP-Z0-9]{25,90})(?:"|&#34;)/
       )?.[1] ?? null
 
-    return { evm: evmAddress, btc: btcAddress }
+    return { evm: evmAddress, btc: btcAddress, displayName: creatorName }
   } catch {
-    return { evm: null, btc: null }
+    return { evm: null, btc: null, displayName: 'Rumble Creator' }
   }
 }
 
@@ -192,12 +202,17 @@ async function tryDetectCreatorWallet(): Promise<void> {
     window.location.pathname
   const cacheKey = `creator_${videoId}`
 
+  // Clear old cache to force fresh detection
+  await chrome.storage.local.remove(cacheKey)
+
   // Use cached address if available
   const cached = await chrome.storage.local.get(cacheKey)
   if (cached[cacheKey]) {
+    const entry = cached[cacheKey] as { evm: string | null; btc: string | null; displayName?: string }
     chrome.runtime.sendMessage({
       type: 'CREATOR_WALLET_DETECTED',
-      addresses: cached[cacheKey],
+      addresses: { evm: entry.evm, btc: entry.btc },
+      creatorName: entry.displayName ?? 'Rumble Creator',
       pageUrl: window.location.href
     })
     return
@@ -218,7 +233,8 @@ async function tryDetectCreatorWallet(): Promise<void> {
         await chrome.storage.local.set({ [cacheKey]: result })
         chrome.runtime.sendMessage({
           type: 'CREATOR_WALLET_DETECTED',
-          addresses: result,
+          addresses: { evm: result.evm, btc: result.btc },
+          creatorName: result.displayName,
           pageUrl: window.location.href
         })
         const badge = document.getElementById('tipble-badge')
