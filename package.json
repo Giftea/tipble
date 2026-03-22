@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "concurrently --names \"agent,web\" --prefix-colors \"cyan,magenta\" \"npm run dev --prefix agent\" \"npm run dev --prefix web\""
+    "dev": "concurrently --names \"agent,web\" --prefix-colors \"cyan,magenta\" \"cd agent && npm run dev\" \"cd web && npm run dev\""
   },
   "devDependencies": {
     "concurrently": "^9.1.2"
