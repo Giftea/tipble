@@ -61,11 +61,21 @@ export interface TipbleConfig {
     }
     watchingNow: {
       enabled: boolean
-      threshold: number
       tipAmount: string
       asset: string
     }
     newFollower: {
+      enabled: boolean
+      tipAmount: string
+      asset: string
+    }
+    watchTime: {
+      enabled: boolean
+      thresholdMinutes: number
+      tipAmount: string
+      asset: string
+    }
+    newSubscriberDetected: {
       enabled: boolean
       tipAmount: string
       asset: string

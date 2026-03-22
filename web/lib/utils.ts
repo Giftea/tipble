@@ -18,8 +18,8 @@ export function formatEth(amount: string): string {
 }
 
 export function getExplorerUrl(hash: string, network: string): string {
-  if (network === "polygon") {
-    return `https://polygonscan.com/tx/${hash}`
-  }
-  return `https://sepolia.etherscan.io/tx/${hash}`
+  if (network === "polygon") return `https://polygonscan.com/tx/${hash}`
+  if (network === "base-sepolia") return `https://sepolia.basescan.org/tx/${hash}`
+  if (network === "sepolia") return `https://sepolia.etherscan.io/tx/${hash}`
+  return `https://basescan.org/tx/${hash}`
 }

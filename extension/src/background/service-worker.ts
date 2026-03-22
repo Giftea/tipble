@@ -165,6 +165,69 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     return true
   }
 
+  if (message.type === 'WATCH_TIME_REACHED') {
+    ;(async () => {
+      const settings = await getSettings()
+      const stored = await chrome.storage.local.get('currentCreatorWallet')
+      const wallet = stored.currentCreatorWallet as { evm?: string; displayName?: string } | undefined
+      const creatorAddress = wallet?.evm
+      const creatorName = wallet?.displayName
+
+      if (creatorAddress) {
+        try {
+          await fetch(`${settings.agentApiUrl}/api/stream/event`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              eventType: 'watch_time_reached',
+              watchingNow: 0,
+              prevWatching: 0,
+              creatorAddress,
+              creatorName: creatorName ?? 'Creator',
+              watchSeconds: message.watchSeconds,
+              pageUrl: message.pageUrl
+            })
+          })
+        } catch {
+          // Agent offline — ignore
+        }
+      }
+      sendResponse({ success: true })
+    })()
+    return true
+  }
+
+  if (message.type === 'SUBSCRIBER_ACTION_DETECTED') {
+    ;(async () => {
+      const settings = await getSettings()
+      const stored = await chrome.storage.local.get('currentCreatorWallet')
+      const wallet = stored.currentCreatorWallet as { evm?: string; displayName?: string } | undefined
+      const creatorAddress = wallet?.evm
+      const creatorName = wallet?.displayName
+
+      if (creatorAddress) {
+        try {
+          await fetch(`${settings.agentApiUrl}/api/stream/event`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              eventType: 'subscriber_action',
+              watchingNow: 0,
+              prevWatching: 0,
+              creatorAddress,
+              creatorName: creatorName ?? 'Creator',
+              pageUrl: message.pageUrl
+            })
+          })
+        } catch {
+          // Agent offline — ignore
+        }
+      }
+      sendResponse({ success: true })
+    })()
+    return true
+  }
+
   if (message.type === 'PAUSE_AGENT') {
     getSettings().then((s) => {
       fetch(`${s.agentApiUrl}/api/agent/pause`, { method: 'POST' }).then(() =>

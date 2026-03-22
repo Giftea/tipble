@@ -9,6 +9,60 @@ interface DOMStreamState {
   pageUrl: string
 }
 
+// ─── Extension safety helpers ─────────────────────────────────────────────────
+
+function isExtensionValid(): boolean {
+  try {
+    return !!chrome.runtime?.id
+  } catch(e) {
+    return false
+  }
+}
+
+function safeSendMessage(message: any): void {
+  try {
+    chrome.runtime.sendMessage(message, (_response) => {
+      if (chrome.runtime.lastError) {
+        // Extension context invalidated — ignore
+        return
+      }
+    })
+  } catch(e) {
+    // Extension reloaded — content script needs page refresh to reconnect
+    // Silently ignore
+  }
+}
+
+// ─── Watch time state ─────────────────────────────────────────────────────────
+
+let watchSeconds = 0
+let watchTimerFired = false
+let isVideoPlaying = false
+
+// ─── Live detection ───────────────────────────────────────────────────────────
+
+function detectIsLiveStream(): boolean {
+  return !!document.querySelector('.video-header-live-info') ||
+         !!document.querySelector('.live-video-view-count-status')
+}
+
+let currentlyLive = false
+
+function scrapeViewerCount(): number {
+  const el = document.querySelector('.live-video-view-count-status-count')
+  if (!el) return 0
+  const fromTitle = el.getAttribute('title')?.match(/^(\d+)/)
+  if (fromTitle) return parseInt(fromTitle[1])
+  return parseInt(el.textContent?.trim() ?? '0') || 0
+}
+
+function updateBadgeStyle(isLive: boolean): void {
+  const badge = document.getElementById('tipble-badge')
+  if (!badge) return
+  const dot = badge.querySelector('span')
+  if (dot) dot.style.background = isLive ? '#ef4444' : '#5dcaa5'
+}
+
 // ─── Page detection ───────────────────────────────────────────────────────────
 
 function isVideoPage(): boolean {
@@ -34,7 +88,6 @@ function injectBadge() {
 
   const badge = document.createElement('div')
   badge.id = 'tipble-badge'
-  badge.textContent = '🦞 Tipble Active'
 
   badge.setAttribute('style', [
     'position: fixed',
@@ -66,7 +119,18 @@ function injectBadge() {
     'flex-shrink: 0'
   ].join('; '))
 
+  const isLive = detectIsLiveStream()
+
+  if (isLive) {
+    dot.style.background = '#DC2626'
+  }
+
   badge.prepend(dot)
+
+  const textNode = document.createTextNode(
+    isLive ? ' Tipble ● LIVE ⏱ 0:00' : ' Tipble Active ⏱ 0:00'
+  )
+  badge.appendChild(textNode)
 
   document.documentElement.appendChild(badge)
 
@@ -79,9 +143,16 @@ function injectBadge() {
     seconds++
     const mins = Math.floor(seconds / 60)
     const secs = seconds % 60
-    const time = `${mins}:${secs.toString().padStart(2, '0')}`
-    const textNode = badge.lastChild
-    if (textNode) textNode.textContent = ` Tipble ⏱ ${time}`
+    const timerStr = `${mins}:${secs.toString().padStart(2, '0')}`
+    const node = badge.lastChild
+    if (!node) return
+    if (currentlyLive) {
+      const viewers = scrapeViewerCount()
+      const duration = document.querySelector('.live-video-view-count-status-duration')?.textContent?.trim() ?? timerStr
+      node.textContent = ` Tipble ● LIVE  👁 ${viewers}  ⏱ ${duration}`
+    } else {
+      node.textContent = ` Tipble Active ⏱ ${timerStr}`
+    }
   }, 1000)
 }
 
@@ -218,7 +289,7 @@ async function tryDetectCreatorWallet(): Promise<void> {
   const cached = await chrome.storage.local.get(cacheKey)
   if (cached[cacheKey]) {
     const entry = cached[cacheKey] as { evm: string | null; btc: string | null; displayName?: string }
-    chrome.runtime.sendMessage({
+    safeSendMessage({
       type: 'CREATOR_WALLET_DETECTED',
       addresses: { evm: entry.evm, btc: entry.btc },
       creatorName: entry.displayName ?? 'Rumble Creator',
@@ -240,7 +311,7 @@ async function tryDetectCreatorWallet(): Promise<void> {
       const result = await detectCreatorWallet()
       if (result.evm || result.btc) {
         await chrome.storage.local.set({ [cacheKey]: result })
-        chrome.runtime.sendMessage({
+        safeSendMessage({
           type: 'CREATOR_WALLET_DETECTED',
           addresses: { evm: result.evm, btc: result.btc },
           creatorName: result.displayName,
@@ -265,38 +336,9 @@ async function tryDetectCreatorWallet(): Promise<void> {
 // ─── DOM stream monitor ───────────────────────────────────────────────────────
 
 function scrapeStreamState(): DOMStreamState {
-  const watchingSelectors = [
-    '.watching-now',
-    '[class*="watching"]',
-    '[class*="viewers"]',
-    '[class*="viewer-count"]',
-    '.live-watching',
-  ]
+  const watchingNow = scrapeViewerCount()
 
-  let watchingNow = 0
-  for (const selector of watchingSelectors) {
-    const el = document.querySelector(selector)
-    if (el?.textContent) {
-      const num = parseInt(el.textContent.replace(/[^0-9]/g, ''))
-      if (num > 0) { watchingNow = num; break }
-    }
-  }
-
-  if (watchingNow === 0) {
-    const allText = document.querySelectorAll('span, div, p')
-    for (const el of allText) {
-      const text = el.textContent?.trim() ?? ''
-      if (text.match(/^\d+\s*(watching|viewers)/i)) {
-        watchingNow = parseInt(text) || 0
-        if (watchingNow > 0) break
-      }
-    }
-  }
-
-  const liveBadge = document.querySelector('[class*="live"], .live-badge, [class*="is-live"]')
-  const isLive = !!liveBadge ||
-    document.title.toLowerCase().includes('live') ||
-    window.location.href.includes('/live/')
+  const isLive = detectIsLiveStream()
 
   const creatorSelectors = [
     '.creator-name',
@@ -321,26 +363,25 @@ function monitorStreamDOM(): void {
   let lastSentTime = 0
 
   const check = () => {
+    if (!isExtensionValid()) return
     if (!isVideoPage()) return
 
     const curr = scrapeStreamState()
     const now = Date.now()
 
     if (now - lastSentTime < 10000) return
-    if (!curr.isLive && curr.watchingNow === 0) return
+    if (!detectIsLiveStream() && curr.watchingNow === 0) return
 
     let eventType: string | null = null
     if (prevState && curr.watchingNow > 0) {
-      const ratio = curr.watchingNow / Math.max(prevState.watchingNow, 1)
-      if (ratio >= 1.5 && prevState.watchingNow >= 5) {
+      if (curr.watchingNow >= prevState.watchingNow * 1.5 && prevState.watchingNow >= 5) {
         eventType = 'viewer_spike'
-      }
-      if (curr.watchingNow >= 500 && prevState.watchingNow < 500) {
-        eventType = 'watching_now_threshold'
+      } else if (curr.watchingNow > prevState.watchingNow && prevState.watchingNow > 0) {
+        eventType = 'new_viewer'
       }
     }
 
-    chrome.runtime.sendMessage({
+    safeSendMessage({
       type: 'DOM_STREAM_UPDATE',
       state: curr,
       eventType,
@@ -353,6 +394,126 @@ function monitorStreamDOM(): void {
 
   setInterval(check, 10000)
   setTimeout(check, 3000)
+}
+
+// ─── Live status polling ──────────────────────────────────────────────────────
+
+function checkLiveStatus(): void {
+  const isLive = detectIsLiveStream()
+  if (isLive === currentlyLive) return
+
+  currentlyLive = isLive
+
+  if (isLive) {
+    injectLiveBanner()
+    updateBadgeStyle(true)
+    console.log('[Tipble] Livestream detected')
+  } else {
+    updateBadgeStyle(false)
+    document.getElementById('tipble-live-banner')?.remove()
+    console.log('[Tipble] Stream ended — now VOD')
+  }
+}
+
+// ─── Watch time tracking ──────────────────────────────────────────────────────
+
+function setupWatchTimeTracking(): void {
+  const video = document.querySelector('video')
+  if (!video) {
+    setTimeout(setupWatchTimeTracking, 2000)
+    return
+  }
+
+  video.addEventListener('play', () => { isVideoPlaying = true })
+  video.addEventListener('pause', () => { isVideoPlaying = false })
+
+  setInterval(() => {
+    if (!isExtensionValid()) return
+    if (!isVideoPlaying) return
+    watchSeconds++
+    ;(async () => {
+      const config = await chrome.storage.local.get('tipbleRules')
+      const rules = config.tipbleRules as { watchTime?: { thresholdMinutes?: number } } | undefined
+      const thresholdSeconds = (rules?.watchTime?.thresholdMinutes ?? 30) * 60
+      if (watchSeconds >= thresholdSeconds && !watchTimerFired) {
+        watchTimerFired = true
+        safeSendMessage({
+          type: 'WATCH_TIME_REACHED',
+          watchSeconds,
+          pageUrl: window.location.href
+        })
+      }
+    })()
+  }, 1000)
+}
+
+// ─── Subscribe detection ──────────────────────────────────────────────────────
+
+function setupSubscribeDetection(): void {
+  document.addEventListener('click', (e) => {
+    const target = e.target as HTMLElement
+    const button = target.closest('button')
+    if (!button) return
+
+    const text = button.textContent?.trim().toLowerCase() ?? ''
+    const isSubscribeClick =
+      text.includes('subscribe') ||
+      text.includes('rumble premium') ||
+      button.classList.toString().includes('subscribe')
+
+    if (isSubscribeClick) {
+      setTimeout(() => {
+        safeSendMessage({
+          type: 'SUBSCRIBER_ACTION_DETECTED',
+          pageUrl: window.location.href
+        })
+      }, 1000)
+    }
+  })
+}
+
+// ─── Live banner ──────────────────────────────────────────────────────────────
+
+function injectLiveBanner(): void {
+  if (!detectIsLiveStream()) return
+
+  const existing = document.getElementById('tipble-live-banner')
+  if (existing) existing.remove()
+
+  const banner = document.createElement('div')
+  banner.id = 'tipble-live-banner'
+  banner.setAttribute('style', [
+    'position: fixed',
+    'top: 20px',
+    'left: 50%',
+    'transform: translateX(-50%)',
+    'z-index: 2147483647',
+    'background: rgba(220, 38, 38, 0.9)',
+    'color: white',
+    'padding: 6px 16px',
+    'border-radius: 20px',
+    'font-size: 13px',
+    'font-family: -apple-system, sans-serif',
+    'font-weight: 600',
+    'display: flex',
+    'align-items: center',
+    'gap: 8px',
+    'pointer-events: none',
+    'animation: tipble-pulse-red 2s infinite'
+  ].join('; '))
+
+  banner.innerHTML = `
+    <span style="width:8px;height:8px;border-radius:50%;background:white;display:inline-block;flex-shrink:0"></span>
+    LIVESTREAM DETECTED — Tipble Active
+  `
+
+  document.documentElement.appendChild(banner)
+
+  setTimeout(() => {
+    banner.style.opacity = '0'
+    banner.style.transition = 'opacity 0.5s'
+    setTimeout(() => banner.remove(), 500)
+  }, 5000)
 }
 
 // ─── Toast ───────────────────────────────────────────────────────────────────
@@ -419,11 +580,15 @@ if (document.readyState === 'loading') {
   injectBadge()
 }
 
-// Detect creator wallet and start stream monitor on video pages
+// Detect creator wallet and start monitors on video pages
 if (isVideoPage()) {
   injectBadge()
   tryDetectCreatorWallet()
   monitorStreamDOM()
+  setupWatchTimeTracking()
+  setupSubscribeDetection()
+  setTimeout(checkLiveStatus, 3000)
+  setInterval(checkLiveStatus, 30000)
 }
 
 // Re-inject on Rumble SPA navigation
@@ -436,10 +601,14 @@ new MutationObserver(() => {
     if (existing) existing.remove()
 
     if (isVideoPage()) {
+      watchSeconds = 0
+      watchTimerFired = false
+      currentlyLive = false
       setTimeout(injectBadge, 1000)
       tryDetectCreatorWallet()
+      setTimeout(checkLiveStatus, 3000)
     } else {
-      chrome.runtime.sendMessage({ type: 'CLEAR_CREATOR_WALLET' })
+      safeSendMessage({ type: 'CLEAR_CREATOR_WALLET' })
     }
   }
 }).observe(document, { subtree: true, childList: true })

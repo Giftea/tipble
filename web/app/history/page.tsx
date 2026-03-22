@@ -94,7 +94,7 @@ export default function HistoryPage() {
     refreshInterval: 5000,
   })
 
-  const network = status?.network ?? "sepolia"
+  const network = status?.network ?? "base"
 
   const totalTipped = tips
     ? tips.reduce((sum, t) => sum + parseFloat(t.amount || "0"), 0).toFixed(6)

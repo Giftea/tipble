@@ -40,11 +40,21 @@ interface RulesForm {
   }
   watchingNow: {
     enabled: boolean
-    threshold: string
     tipAmount: string
     asset: string
   }
   newFollower: {
+    enabled: boolean
+    tipAmount: string
+    asset: string
+  }
+  watchTime: {
+    enabled: boolean
+    thresholdMinutes: string
+    tipAmount: string
+    asset: string
+  }
+  newSubscriberDetected: {
     enabled: boolean
     tipAmount: string
     asset: string
@@ -157,7 +167,6 @@ export default function RulesPage() {
         },
         watchingNow: {
           enabled: r.watchingNow.enabled,
-          threshold: String(r.watchingNow.threshold),
           tipAmount: r.watchingNow.tipAmount,
           asset: r.watchingNow.asset,
         },
@@ -165,6 +174,17 @@ export default function RulesPage() {
           enabled: r.newFollower?.enabled ?? false,
           tipAmount: r.newFollower?.tipAmount ?? "0.0001",
           asset: r.newFollower?.asset ?? "ETH",
+        },
+        watchTime: {
+          enabled: r.watchTime?.enabled ?? true,
+          thresholdMinutes: String(r.watchTime?.thresholdMinutes ?? 30),
+          tipAmount: r.watchTime?.tipAmount ?? "0.25",
+          asset: r.watchTime?.asset ?? "USDT",
+        },
+        newSubscriberDetected: {
+          enabled: r.newSubscriberDetected?.enabled ?? true,
+          tipAmount: r.newSubscriberDetected?.tipAmount ?? "0.50",
+          asset: r.newSubscriberDetected?.asset ?? "USDT",
         },
       })
     }
@@ -215,7 +235,6 @@ export default function RulesPage() {
           },
           watchingNow: {
             enabled: form.watchingNow.enabled,
-            threshold: parseInt(form.watchingNow.threshold, 10) || 500,
             tipAmount: form.watchingNow.tipAmount,
             asset: form.watchingNow.asset,
           },
@@ -223,6 +242,17 @@ export default function RulesPage() {
             enabled: form.newFollower.enabled,
             tipAmount: form.newFollower.tipAmount,
             asset: form.newFollower.asset,
+          },
+          watchTime: {
+            enabled: form.watchTime.enabled,
+            thresholdMinutes: parseInt(form.watchTime.thresholdMinutes, 10) || 30,
+            tipAmount: form.watchTime.tipAmount,
+            asset: form.watchTime.asset,
+          },
+          newSubscriberDetected: {
+            enabled: form.newSubscriberDetected.enabled,
+            tipAmount: form.newSubscriberDetected.tipAmount,
+            asset: form.newSubscriberDetected.asset,
           },
         },
       }
@@ -261,13 +291,23 @@ export default function RulesPage() {
         },
         form.watchingNow.enabled && {
           key: "watchingNow" as const,
-          label: "Watching Now",
+          label: "New Viewer",
           detail: `${form.watchingNow.tipAmount} ${form.watchingNow.asset}`,
         },
         form.newFollower.enabled && {
           key: "newFollower" as const,
           label: "New Follower",
           detail: `${form.newFollower.tipAmount} ${form.newFollower.asset}`,
+        },
+        form.watchTime.enabled && {
+          key: "watchTime" as const,
+          label: "Watch Time",
+          detail: `${form.watchTime.tipAmount} ${form.watchTime.asset} @ ${form.watchTime.thresholdMinutes}m`,
+        },
+        form.newSubscriberDetected.enabled && {
+          key: "newSubscriberDetected" as const,
+          label: "Subscriber Action",
+          detail: `${form.newSubscriberDetected.tipAmount} ${form.newSubscriberDetected.asset}`,
         },
       ].filter(Boolean) as { key: keyof RulesForm; label: string; detail: string }[]
     : []
@@ -419,25 +459,18 @@ export default function RulesPage() {
               </FieldRow>
             </RuleCard>
 
-            {/* D. Watching Now */}
+            {/* D. New Viewer */}
             <RuleCard
-              title="Watching Now Threshold"
+              title="New Viewer"
               enabled={form.watchingNow.enabled}
               onToggle={(v) => patch("watchingNow", "enabled", v)}
+              warning="High frequency — use very small amounts"
             >
-              <FieldRow label="Viewer Threshold (e.g. 500)">
-                <Input
-                  value={form.watchingNow.threshold}
-                  onChange={(e) => patch("watchingNow", "threshold", e.target.value)}
-                  placeholder="500"
-                  className="bg-zinc-800 border-zinc-700 text-white"
-                />
-              </FieldRow>
-              <FieldRow label="Tip Amount">
+              <FieldRow label="Tip amount per new viewer">
                 <Input
                   value={form.watchingNow.tipAmount}
                   onChange={(e) => patch("watchingNow", "tipAmount", e.target.value)}
-                  placeholder="0.0005"
+                  placeholder="0.00001"
                   className="bg-zinc-800 border-zinc-700 text-white"
                 />
               </FieldRow>
@@ -447,6 +480,9 @@ export default function RulesPage() {
                   onChange={(v) => patch("watchingNow", "asset", v)}
                 />
               </FieldRow>
+              <div className="col-span-full text-xs text-zinc-500">
+                Tip creator each time a new viewer joins the livestream.
+              </div>
             </RuleCard>
 
             {/* E. New Follower */}
@@ -470,6 +506,65 @@ export default function RulesPage() {
                   onChange={(v) => patch("newFollower", "asset", v)}
                 />
               </FieldRow>
+            </RuleCard>
+
+            {/* F. Watch Time */}
+            <RuleCard
+              title="Watch Time Tip"
+              enabled={form.watchTime.enabled}
+              onToggle={(v) => patch("watchTime", "enabled", v)}
+            >
+              <FieldRow label="Tip after (minutes)">
+                <Input
+                  type="number"
+                  value={form.watchTime.thresholdMinutes}
+                  onChange={(e) => patch("watchTime", "thresholdMinutes", e.target.value)}
+                  placeholder="30"
+                  className="bg-zinc-800 border-zinc-700 text-white"
+                />
+              </FieldRow>
+              <FieldRow label="Tip Amount">
+                <Input
+                  value={form.watchTime.tipAmount}
+                  onChange={(e) => patch("watchTime", "tipAmount", e.target.value)}
+                  placeholder="0.25"
+                  className="bg-zinc-800 border-zinc-700 text-white"
+                />
+              </FieldRow>
+              <FieldRow label="Asset">
+                <AssetSelect
+                  value={form.watchTime.asset}
+                  onChange={(v) => patch("watchTime", "asset", v)}
+                />
+              </FieldRow>
+              <div className="col-span-full text-xs text-zinc-500">
+                Works for both livestreams and regular videos.
+              </div>
+            </RuleCard>
+
+            {/* G. New Subscriber Detected */}
+            <RuleCard
+              title="Subscriber Action"
+              enabled={form.newSubscriberDetected.enabled}
+              onToggle={(v) => patch("newSubscriberDetected", "enabled", v)}
+            >
+              <FieldRow label="Tip Amount">
+                <Input
+                  value={form.newSubscriberDetected.tipAmount}
+                  onChange={(e) => patch("newSubscriberDetected", "tipAmount", e.target.value)}
+                  placeholder="0.50"
+                  className="bg-zinc-800 border-zinc-700 text-white"
+                />
+              </FieldRow>
+              <FieldRow label="Asset">
+                <AssetSelect
+                  value={form.newSubscriberDetected.asset}
+                  onChange={(v) => patch("newSubscriberDetected", "asset", v)}
+                />
+              </FieldRow>
+              <div className="col-span-full text-xs text-zinc-500">
+                Fires when you click the Subscribe button on a creator&apos;s page.
+              </div>
             </RuleCard>
 
           </CardContent>

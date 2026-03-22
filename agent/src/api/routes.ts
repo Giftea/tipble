@@ -208,20 +208,51 @@ router.post("/stream/event", async (req, res) => {
     return
   }
 
-  const curr: StreamState = {
-    num_followers: 0,
-    num_followers_total: 0,
-    num_subscribers: 0,
-    watching_now: watchingNow,
-    is_live: true,
-    latest_subscriber_username: null,
-    latest_follower_username: null,
-    timestamp: Date.now()
+  // Deterministic rules — skip Claude
+  let decision: { shouldTip: boolean; amount: string; asset: string; reason: string; eventType: string; confidence: number }
+
+  if (eventType === 'watch_time_reached') {
+    const rule = config.rules.watchTime
+    if (!rule.enabled) {
+      res.json({ success: true, tipped: false, reason: "Watch time rule disabled" })
+      return
+    }
+    console.log(`[agent] Watch time tip: ${rule.tipAmount} ${rule.asset} → ${creatorAddress}`)
+    decision = { shouldTip: true, amount: rule.tipAmount, asset: rule.asset, reason: "Watch time reached", eventType, confidence: 1.0 }
+
+  } else if (eventType === 'subscriber_action') {
+    const rule = config.rules.newSubscriberDetected
+    if (!rule.enabled) {
+      res.json({ success: true, tipped: false, reason: "Subscriber action rule disabled" })
+      return
+    }
+    console.log(`[agent] Subscriber action tip fired`)
+    decision = { shouldTip: true, amount: rule.tipAmount, asset: rule.asset, reason: "Subscribed to creator", eventType, confidence: 1.0 }
+
+  } else if (eventType === 'new_viewer') {
+    const rule = config.rules.watchingNow
+    if (!rule.enabled) {
+      res.json({ success: true, tipped: false, reason: "Watching now rule disabled" })
+      return
+    }
+    console.log(`[agent] New viewer tip: ${rule.tipAmount} ${rule.asset} → ${creatorAddress}`)
+    decision = { shouldTip: true, amount: rule.tipAmount, asset: rule.asset, reason: "New viewer watching", eventType, confidence: 1.0 }
+
+  } else {
+    // LLM-based reasoning for viewer spikes etc.
+    const curr: StreamState = {
+      num_followers: 0,
+      num_followers_total: 0,
+      num_subscribers: 0,
+      watching_now: watchingNow,
+      is_live: true,
+      latest_subscriber_username: null,
+      latest_follower_username: null,
+      timestamp: Date.now()
+    }
+    const prev: StreamState = { ...curr, watching_now: prevWatching }
+    decision = await reasonAboutTip(prev, curr, config)
   }
-
-  const prev: StreamState = { ...curr, watching_now: prevWatching }
-
-  const decision = await reasonAboutTip(prev, curr, config)
 
   if (!decision.shouldTip) {
     res.json({ success: true, tipped: false, reason: decision.reason })

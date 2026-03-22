@@ -40,12 +40,27 @@ export interface NewFollowerRule {
   asset: AssetType
 }
 
+export interface WatchTimeRule {
+  enabled: boolean
+  thresholdMinutes: number
+  tipAmount: string
+  asset: AssetType
+}
+
+export interface NewSubscriberDetectedRule {
+  enabled: boolean
+  tipAmount: string
+  asset: AssetType
+}
+
 export interface RulesConfig {
   followerMilestones: FollowerMilestoneRule
   newSubscriber: NewSubscriberRule
   viewerSpike: ViewerSpikeRule
   watchingNow: WatchingNowRule
   newFollower: NewFollowerRule
+  watchTime: WatchTimeRule
+  newSubscriberDetected: NewSubscriberDetectedRule
 }
 
 export interface BudgetConfig {

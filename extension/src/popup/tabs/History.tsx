@@ -10,19 +10,21 @@ const EVENT_BADGES: Record<string, { label: string; color: string; bg: string }>
 
 function getExplorerUrl(txHash: string, network: string): string {
   if (network === 'polygon') return `https://polygonscan.com/tx/${txHash}`
-  return `https://sepolia.etherscan.io/tx/${txHash}`
+  if (network === 'base-sepolia') return `https://sepolia.basescan.org/tx/${txHash}`
+  if (network === 'sepolia') return `https://sepolia.etherscan.io/tx/${txHash}`
+  return `https://basescan.org/tx/${txHash}`
 }
 
 export default function History() {
   const [tips, setTips] = useState<TipEvent[]>([])
-  const [network, setNetwork] = useState('sepolia')
+  const [network, setNetwork] = useState('base')
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     chrome.runtime.sendMessage({ type: 'GET_STATUS' }, (result) => {
       if (result?.cachedStatus) {
         setTips(result.cachedStatus.recentTips?.slice(0, 20) ?? [])
-        setNetwork(result.cachedStatus.network ?? 'sepolia')
+        setNetwork(result.cachedStatus.network ?? 'base')
       }
       setLoading(false)
     })
