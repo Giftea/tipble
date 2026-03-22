@@ -80,11 +80,32 @@ router.post("/tip/manual", async (req, res) => {
     confidence: 1.0,
   }
   const result = await executeTip(decision, targetAddress)
-  res.json(
-    result
-      ? { success: true, hash: result.hash, sentTo: targetAddress, amount: tipAmount, asset: tipAsset }
-      : { success: false, error: "Tip execution failed" }
-  )
+
+  if (!result) {
+    res.json({ success: false, error: "Tip execution failed" })
+    return
+  }
+
+  const tipEvent: TipEvent = {
+    id: Date.now().toString() + Math.random(),
+    timestamp: new Date().toISOString(),
+    reason: decision.reason,
+    amount: tipAmount,
+    asset: tipAsset,
+    txHash: result.hash,
+    eventType: "manual",
+    confidence: 1.0,
+  }
+  tipLog.push(tipEvent)
+  appendTip(tipEvent)
+  agentLog.push({
+    id: tipEvent.id,
+    timestamp: new Date().toTimeString().slice(0, 8),
+    type: 'TX',
+    message: `${tipAmount} ${tipAsset} → ${targetAddress.slice(0, 6)}... | Manual tip | ${result.hash.slice(0, 10)}...`
+  })
+
+  res.json({ success: true, hash: result.hash, sentTo: targetAddress, amount: tipAmount, asset: tipAsset })
 })
 
 router.post("/creator/set", (req, res) => {

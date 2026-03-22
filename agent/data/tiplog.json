@@ -108,5 +108,15 @@
     "txHash": "0xfa98f8ceae713bc50209061b15482a7e776de2e486f9dc428e78078142673d2e",
     "eventType": "new_viewer",
     "confidence": 1
+  },
+  {
+    "id": "17741822433190.3488415292212399",
+    "timestamp": "2026-03-22T12:24:03.319Z",
+    "reason": "Manual tip",
+    "amount": "0.20",
+    "asset": "USDT",
+    "txHash": "0xc0e516198f03d23e4d7ec3b388d9d637d53c6ee355746821f8c849d46fb65f71",
+    "eventType": "manual",
+    "confidence": 1
   }
 ]

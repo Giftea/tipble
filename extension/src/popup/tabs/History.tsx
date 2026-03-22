@@ -2,10 +2,13 @@ import React, { useState, useEffect } from 'react'
 import type { TipEvent } from '../../types'
 
 const EVENT_BADGES: Record<string, { label: string; color: string; bg: string }> = {
-  milestone:    { label: 'Milestone', color: '#a78bfa', bg: 'rgba(167,139,250,0.12)' },
-  new_sub:      { label: 'Sub',       color: '#00C8FF', bg: 'rgba(0,200,255,0.1)'    },
-  viewer_spike: { label: 'Spike',     color: '#EF9F27', bg: 'rgba(239,159,39,0.12)'  },
-  manual:       { label: 'Manual',    color: '#5e8fbe', bg: 'rgba(94,143,190,0.1)'   }
+  milestone:            { label: 'Milestone',  color: '#a78bfa', bg: 'rgba(167,139,250,0.12)' },
+  new_sub:              { label: 'Sub',        color: '#00C8FF', bg: 'rgba(0,200,255,0.1)'    },
+  viewer_spike:         { label: 'Spike',      color: '#EF9F27', bg: 'rgba(239,159,39,0.12)'  },
+  new_viewer:           { label: 'New Viewer', color: '#5dcaa5', bg: 'rgba(93,202,165,0.1)'   },
+  watch_time_reached:   { label: 'Watch Time', color: '#c084fc', bg: 'rgba(192,132,252,0.1)'  },
+  subscriber_action:    { label: 'Subscribed', color: '#f472b6', bg: 'rgba(244,114,182,0.1)'  },
+  manual:               { label: 'Manual',     color: '#5e8fbe', bg: 'rgba(94,143,190,0.1)'   }
 }
 
 function getExplorerUrl(txHash: string, network: string): string {

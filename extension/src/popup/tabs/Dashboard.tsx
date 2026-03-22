@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { sendManualTip, fetchUsdtBalance } from '../../lib/api'
+import { sendManualTip, fetchStatus, fetchUsdtBalance } from '../../lib/api'
 import type { AgentStatus } from '../../types'
 
 interface CreatorWallet {
@@ -29,7 +29,6 @@ export default function Dashboard() {
   const [currentCreator, setCurrentCreator] = useState<{ evm: string | null; btc: string | null; displayName: string } | null>(null)
   const [usdtBalance, setUsdtBalance] = useState<string | null>(null)
   const [showTipForm, setShowTipForm] = useState(false)
-  const [tipReason, setTipReason] = useState('')
   const [tipAmount, setTipAmount] = useState('0.50')
   const [tipAsset, setTipAsset] = useState('USDT')
   const [tipping, setTipping] = useState(false)
@@ -64,7 +63,6 @@ export default function Dashboard() {
   }, [])
 
   function resetForm() {
-    setTipReason('')
     setTipAmount('0.50')
     setTipAsset('USDT')
     setTipError(null)
@@ -77,7 +75,7 @@ export default function Dashboard() {
     setTipError(null)
     setTipSuccess(null)
     try {
-      const result = await sendManualTip(tipReason || 'Manual tip', tipAmount, tipAsset)
+      const result = await sendManualTip('Manual tip', tipAmount, tipAsset)
       if (result.success && result.hash) {
         setTipSuccess({
           hash: result.hash,
@@ -85,6 +83,7 @@ export default function Dashboard() {
           amount: result.amount ?? tipAmount,
           asset: result.asset ?? tipAsset
         })
+        fetchStatus().then(setStatus).catch(() => {})
         setTimeout(resetForm, 3000)
       } else {
         setTipError(result.error ?? 'Tip failed')
@@ -244,7 +243,7 @@ export default function Dashboard() {
                 → {tipSuccess.sentTo.slice(0, 6)}...{tipSuccess.sentTo.slice(-4)}
               </div>
               <a
-                href={explorerUrl(tipSuccess.hash, status?.network ?? 'sepolia')}
+                href={explorerUrl(tipSuccess.hash, status?.network ?? 'base')}
                 target="_blank"
                 rel="noreferrer"
                 style={{ fontSize: 10, color: '#3a6a96', fontFamily: 'monospace', textDecoration: 'none' }}
@@ -292,21 +291,6 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* Reason */}
-              <div style={{ fontSize: 11, color: '#5e8fbe', marginBottom: 4 }}>Reason for tip</div>
-              <input
-                value={tipReason}
-                onChange={e => setTipReason(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handleSendTip()}
-                placeholder="e.g. Great stream content"
-                autoFocus
-                style={{
-                  width: '100%', boxSizing: 'border-box',
-                  background: '#020810', border: '1px solid #0b1e38',
-                  borderRadius: 6, padding: '7px 8px',
-                  color: '#e8f4ff', fontSize: 13, marginBottom: 8, outline: 'none'
-                }}
-              />
 
               {/* Creator address hint / warning */}
               {creatorWallet?.evm ? (
