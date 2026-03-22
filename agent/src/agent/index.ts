@@ -22,22 +22,12 @@ process.on('uncaughtException', (err: any) => {
 })
 
 import { logBalances } from "../wallet/balance.js"
-import { generateNewWallet } from "../wallet/setup.js"
+import { getAgentAddress } from "../wallet/setup.js"
 import { getConfig } from "../config/loader.js"
 import { startServer } from "../api/server.js"
 
 async function main(): Promise<void> {
   console.log("🦞 TIPBLE v1.0.0")
-
-  if (!process.env.SEED_PHRASE) {
-    const { seedPhrase, address } = await generateNewWallet()
-    console.log("⚠️  No wallet found.")
-    console.log("Generated new wallet:")
-    console.log("  Seed phrase:", seedPhrase)
-    console.log("  Address:", address)
-    console.log("Add SEED_PHRASE to .env and restart.")
-    process.exit(0)
-  }
 
   const config = getConfig()
   console.log("Network:", config.agent.network)
@@ -45,7 +35,17 @@ async function main(): Promise<void> {
   console.log("LLM enabled:", config.agent.llmEnabled)
   console.log("Creator:", config.creator.walletAddress || "NOT SET")
 
-  await logBalances()
+  if (process.env.SEED_PHRASE) {
+    const address = await getAgentAddress()
+    console.log("Default wallet:", address)
+    console.log("Demo mode available")
+    await logBalances()
+  } else {
+    console.log("⚠️  No default wallet configured")
+    console.log("Users must connect their own wallet")
+    console.log("Demo mode unavailable without SEED_PHRASE")
+  }
+
   startServer()
   console.log("[agent] Ready. Use POST /api/agent/start or /api/agent/demo to begin.")
 }

@@ -1,7 +1,13 @@
-import { getSettings } from '../lib/storage'
+import { getSettings, getSeedPhrase } from '../lib/storage'
 import { fetchStatus } from '../lib/api'
 
-let lastTipId = ''
+async function streamEventHeaders(): Promise<Record<string, string>> {
+  const seed = await getSeedPhrase()
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+  if (seed) headers['x-seed-phrase'] = seed
+  return headers
+}
+
 
 async function notifyTipFired(
   tabId: number | undefined,
@@ -42,6 +48,22 @@ async function notifyTipFired(
   }
 }
 
+async function handleLowBalance(settings: Awaited<ReturnType<typeof getSettings>>, code?: string): Promise<void> {
+  const isGas = code === 'INSUFFICIENT_GAS'
+  if (settings.showNotifications) {
+    chrome.notifications.create({
+      type: 'basic',
+      iconUrl: 'icons/icon48.png',
+      title: isGas ? 'Tipble — No Gas' : 'Tipble — Wallet Balance Low',
+      message: isGas
+        ? 'No ETH for gas fees. Auto-tipping paused. Add ETH to your wallet to resume.'
+        : 'Not enough USDT to tip. Auto-tipping paused. Top up your wallet to resume.'
+    })
+  }
+  // Pause agent so it stops firing events
+  fetch(`${settings.agentApiUrl}/api/agent/pause`, { method: 'POST' }).catch(() => {})
+}
+
 chrome.runtime.onInstalled.addListener(() => {
   chrome.alarms.create('pollAgent', {
     periodInMinutes: 0.17 // ~10 seconds
@@ -56,40 +78,6 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 
   try {
     const status = await fetchStatus()
-
-    if (status.recentTips.length > 0) {
-      const latestTip = status.recentTips[0]
-
-      if (latestTip.id !== lastTipId && lastTipId !== '') {
-        const [tab] = await chrome.tabs.query({
-          active: true,
-          currentWindow: true
-        })
-
-        if (tab?.id && tab.url?.includes('rumble.com')) {
-          chrome.tabs.sendMessage(tab.id, {
-            type: 'TIP_FIRED',
-            tip: latestTip,
-            status: {
-              tipsCount: status.tipsCount,
-              totalTipped: status.totalTipped,
-              network: status.network
-            }
-          })
-        }
-
-        if (settings.showNotifications) {
-          chrome.notifications.create({
-            type: 'basic',
-            iconUrl: 'icons/icon48.png',
-            title: 'Tipble — Tip Sent!',
-            message: `${latestTip.amount} ${latestTip.asset} → ${status.creator.displayName} | ${latestTip.reason}`
-          })
-        }
-      }
-
-      lastTipId = latestTip.id
-    }
 
     chrome.action.setBadgeText({
       text: status.tipsCount > 0 ? status.tipsCount.toString() : ''
@@ -183,7 +171,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           if (creatorAddress) {
             const res = await fetch(`${settings.agentApiUrl}/api/stream/event`, {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers: await streamEventHeaders(),
               body: JSON.stringify({
                 eventType: message.eventType,
                 watchingNow: message.state.watchingNow,
@@ -194,12 +182,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
               })
             })
             const result = await res.json()
-            await notifyTipFired(sender.tab?.id, result, {
-              amount: result.amount ?? '0',
-              asset: result.asset ?? 'USDT',
-              reason: result.reason ?? message.eventType,
-              eventType: message.eventType
-            })
+            if (result.code === 'INSUFFICIENT_BALANCE' || result.code === 'INSUFFICIENT_GAS') {
+              await handleLowBalance(settings, result.code)
+            } else {
+              await notifyTipFired(sender.tab?.id, result, {
+                amount: result.amount ?? '0',
+                asset: result.asset ?? 'USDT',
+                reason: result.reason ?? message.eventType,
+                eventType: message.eventType
+              })
+            }
           }
         } catch {
           // Agent offline — ignore
@@ -223,7 +215,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         try {
           const res = await fetch(`${settings.agentApiUrl}/api/stream/event`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: await streamEventHeaders(),
             body: JSON.stringify({
               eventType: 'watch_time_reached',
               watchingNow: 0,
@@ -235,12 +227,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             })
           })
           const result = await res.json()
-          await notifyTipFired(sender.tab?.id, result, {
-            amount: result.amount ?? '0',
-            asset: result.asset ?? 'USDT',
-            reason: result.reason ?? 'Watch time reached',
-            eventType: 'watch_time_reached'
-          })
+          if (result.code === 'INSUFFICIENT_BALANCE') {
+            await handleLowBalance(settings)
+          } else {
+            await notifyTipFired(sender.tab?.id, result, {
+              amount: result.amount ?? '0',
+              asset: result.asset ?? 'USDT',
+              reason: result.reason ?? 'Watch time reached',
+              eventType: 'watch_time_reached'
+            })
+          }
         } catch {
           // Agent offline — ignore
         }
@@ -262,7 +258,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         try {
           const res = await fetch(`${settings.agentApiUrl}/api/stream/event`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: await streamEventHeaders(),
             body: JSON.stringify({
               eventType: 'subscriber_action',
               watchingNow: 0,
@@ -273,12 +269,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             })
           })
           const result = await res.json()
-          await notifyTipFired(sender.tab?.id, result, {
-            amount: result.amount ?? '0',
-            asset: result.asset ?? 'USDT',
-            reason: result.reason ?? 'Subscribed to creator',
-            eventType: 'subscriber_action'
-          })
+          if (result.code === 'INSUFFICIENT_BALANCE') {
+            await handleLowBalance(settings)
+          } else {
+            await notifyTipFired(sender.tab?.id, result, {
+              amount: result.amount ?? '0',
+              asset: result.asset ?? 'USDT',
+              reason: result.reason ?? 'Subscribed to creator',
+              eventType: 'subscriber_action'
+            })
+          }
         } catch {
           // Agent offline — ignore
         }

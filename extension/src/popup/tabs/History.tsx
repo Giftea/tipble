@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { fetchStatus } from '../../lib/api'
 import type { TipEvent } from '../../types'
 
 const EVENT_BADGES: Record<string, { label: string; color: string; bg: string }> = {
@@ -18,20 +19,22 @@ function getExplorerUrl(txHash: string, network: string): string {
   return `https://basescan.org/tx/${txHash}`
 }
 
-export default function History() {
+export default function History({ isActive }: { isActive: boolean }) {
   const [tips, setTips] = useState<TipEvent[]>([])
   const [network, setNetwork] = useState('base')
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    chrome.runtime.sendMessage({ type: 'GET_STATUS' }, (result) => {
-      if (result?.cachedStatus) {
-        setTips(result.cachedStatus.recentTips?.slice(0, 20) ?? [])
-        setNetwork(result.cachedStatus.network ?? 'base')
-      }
-      setLoading(false)
-    })
-  }, [])
+    if (!isActive) return
+    setLoading(true)
+    fetchStatus()
+      .then(s => {
+        setTips(s.recentTips?.slice(0, 20) ?? [])
+        setNetwork(s.network ?? 'base')
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [isActive])
 
   if (loading) {
     return <div style={{ textAlign: 'center', color: '#5e8fbe', padding: '32px 0', fontSize: 13 }}>Loading...</div>

@@ -1,7 +1,7 @@
 {
   "creator": {
-    "walletAddress": "0x84f0a5990aa120aff809e18eac9d4de034417a66",
-    "displayName": "Classical Music to Relax"
+    "walletAddress": "0x0a5482aa0f38fde90d99d29b40b0cd0f0f1f2321",
+    "displayName": "Nikko Ortiz"
   },
   "rules": {
     "followerMilestones": {
@@ -41,7 +41,7 @@
     },
     "watchTime": {
       "enabled": true,
-      "thresholdMinutes": 10,
+      "thresholdMinutes": 1,
       "tipAmount": "0.25",
       "asset": "USDT"
     },

@@ -18,7 +18,7 @@ export async function sendManualTip(
   reason: string,
   amount?: string,
   asset?: string
-): Promise<{ success: boolean; hash?: string; sentTo?: string; amount?: string; asset?: string; error?: string }> {
+): Promise<{ success: boolean; hash?: string; sentTo?: string; amount?: string; asset?: string; error?: string; code?: string }> {
   const url = await getAgentUrl()
   const seed = await getSeedPhrase()
   const headers: HeadersInit = {
@@ -39,12 +39,19 @@ export async function sendManualTip(
     headers,
     body: JSON.stringify(body)
   })
-  return res.json()
+
+  try {
+    return await res.json()
+  } catch {
+    return { success: false, error: 'Agent returned an unexpected error' }
+  }
 }
 
 export async function fetchUsdtBalance(): Promise<{ balance: string; asset: string }> {
   const url = await getAgentUrl()
-  const res = await fetch(`${url}/api/wallet/usdt-balance`)
+  const seed = await getSeedPhrase()
+  const headers: HeadersInit = seed ? { 'x-seed-phrase': seed } : {}
+  const res = await fetch(`${url}/api/wallet/usdt-balance`, { headers })
   return res.json()
 }
 

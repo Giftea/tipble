@@ -3,7 +3,7 @@ import { getConfig } from "../config/loader.js"
 import { getTodayTotal } from "../storage/tiplog.js"
 import type { TipDecision } from "../rumble/types.js"
 
-export async function executeTip(decision: TipDecision, overrideAddress?: string): Promise<{ hash: string } | null> {
+export async function executeTip(decision: TipDecision, overrideAddress?: string, account?: any): Promise<{ hash: string } | null> {
   if (!decision.shouldTip) return null
 
   const config = getConfig()
@@ -39,9 +39,9 @@ export async function executeTip(decision: TipDecision, overrideAddress?: string
   let hash: string
   try {
     if (decision.asset === 'USDT') {
-      ;({ hash } = await sendUsdtTip(addressUsed, decision.amount, config.agent.network))
+      ;({ hash } = await sendUsdtTip(addressUsed, decision.amount, config.agent.network, account))
     } else {
-      ;({ hash } = await sendTip(addressUsed, ethToWei(decision.amount)))
+      ;({ hash } = await sendTip(addressUsed, ethToWei(decision.amount), account))
     }
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err)

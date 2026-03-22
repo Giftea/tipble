@@ -4,7 +4,8 @@ export const STORAGE_KEYS = {
   SEED_PHRASE: 'tipble_seed_phrase',
   WALLET_ADDRESS: 'tipble_wallet_address',
   SETTINGS: 'tipble_settings',
-  TIP_LOG: 'tipble_tip_log'
+  TIP_LOG: 'tipble_tip_log',
+  DEMO_MODE: 'tipble_demo_mode'
 }
 
 export const DEFAULT_SETTINGS: ExtensionSettings = {
@@ -52,6 +53,24 @@ export async function saveSeedPhrase(seed: string): Promise<void> {
 export async function clearSeedPhrase(): Promise<void> {
   return new Promise((resolve) => {
     chrome.storage.local.remove(STORAGE_KEYS.SEED_PHRASE, resolve)
+  })
+}
+
+export async function getDemoMode(): Promise<boolean> {
+  return new Promise((resolve) => {
+    chrome.storage.local.get(STORAGE_KEYS.DEMO_MODE, (result) => {
+      resolve(result[STORAGE_KEYS.DEMO_MODE] === true)
+    })
+  })
+}
+
+export async function setDemoMode(enabled: boolean): Promise<void> {
+  return new Promise((resolve) => {
+    if (enabled) {
+      chrome.storage.local.set({ [STORAGE_KEYS.DEMO_MODE]: true }, resolve)
+    } else {
+      chrome.storage.local.remove(STORAGE_KEYS.DEMO_MODE, resolve)
+    }
   })
 }
 

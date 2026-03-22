@@ -42,10 +42,10 @@ export default function App() {
       </nav>
 
       <div style={{ padding: 12, maxHeight: 540, overflowY: 'auto' }}>
-        {activeTab === 'dashboard' && <Dashboard />}
-        {activeTab === 'rules' && <Rules />}
-        {activeTab === 'history' && <History />}
-        {activeTab === 'settings' && <Settings />}
+        <div style={{ display: activeTab === 'dashboard' ? 'block' : 'none' }}><Dashboard onNavigate={setActiveTab} /></div>
+        <div style={{ display: activeTab === 'rules' ? 'block' : 'none' }}><Rules /></div>
+        <div style={{ display: activeTab === 'history' ? 'block' : 'none' }}><History isActive={activeTab === 'history'} /></div>
+        <div style={{ display: activeTab === 'settings' ? 'block' : 'none' }}><Settings /></div>
       </div>
     </div>
   )

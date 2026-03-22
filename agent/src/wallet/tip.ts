@@ -44,10 +44,11 @@ export function usdtToUnits(usdt: string): bigint {
 
 export async function sendTip(
   toAddress: string,
-  valueInWei: string
+  valueInWei: string,
+  account?: any
 ): Promise<{ hash: string }> {
-  const account = await getAgentAccount()
-  const tx = await sendWithRetry(() => account.sendTransaction({ to: toAddress, value: BigInt(valueInWei) }))
+  const acc = account ?? await getAgentAccount()
+  const tx = await sendWithRetry<{ hash: string }>(() => acc.sendTransaction({ to: toAddress, value: BigInt(valueInWei) }))
   console.log(`[wallet] ETH tip sent → ${toAddress} | ${valueInWei} wei | hash: ${tx.hash}`)
   return { hash: tx.hash }
 }
@@ -55,13 +56,14 @@ export async function sendTip(
 export async function sendUsdtTip(
   toAddress: string,
   amount: string,
-  network: string
+  network: string,
+  account?: any
 ): Promise<{ hash: string }> {
   const contractAddress = USDT_CONTRACTS[network]
   if (!contractAddress) throw new Error(`No USDT contract for network: ${network}`)
 
-  const account = await getAgentAccount()
-  const result = await sendWithRetry(() => account.transfer({
+  const acc = account ?? await getAgentAccount()
+  const result = await sendWithRetry<{ hash: string }>(() => acc.transfer({
     token: contractAddress,
     recipient: toAddress,
     amount: usdtToUnits(amount),

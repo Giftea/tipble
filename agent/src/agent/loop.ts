@@ -24,8 +24,24 @@ export interface AgentLogEntry {
   message: string
 }
 
-export const tipLog: TipEvent[] = loadTipLog()
+const tipLogs: Map<string, TipEvent[]> = new Map([['', loadTipLog('')]])
 export const agentLog: AgentLogEntry[] = []
+
+export function getTipLog(walletAddress?: string): TipEvent[] {
+  if (!walletAddress) {
+    const defaultAddr = process.env.DEFAULT_WALLET_ADDRESS ?? ''
+    return tipLogs.get(defaultAddr) ?? tipLogs.get('') ?? []
+  }
+  return tipLogs.get(walletAddress.toLowerCase()) ?? []
+}
+
+export function appendToTipLog(tip: TipEvent, walletAddress: string): void {
+  const addr = walletAddress.toLowerCase()
+  if (!tipLogs.has(addr)) tipLogs.set(addr, [])
+  const log = tipLogs.get(addr)!
+  log.push(tip)
+  if (log.length > 50) log.shift()
+}
 export let sessionTotal = 0
 export let isPaused = false
 export let overrideCreatorAddress: string | null = null
@@ -50,7 +66,7 @@ export function setIsPaused(v: boolean) {
 
 export function resetSession() {
   sessionTotal = 0
-  tipLog.length = 0
+  tipLogs.clear()
 }
 
 export function setCreatorAddress(address: string): void {
@@ -138,9 +154,8 @@ async function tick(prevState: StreamState, curr: StreamState): Promise<void> {
         eventType: decision.eventType,
         confidence: decision.confidence,
       }
-      tipLog.push(tipEvent)
-      if (tipLog.length > 50) tipLog.shift()
-      appendTip(tipEvent)
+      appendToTipLog(tipEvent, overrideCreatorAddress ?? '')
+      appendTip(tipEvent, overrideCreatorAddress ?? '')
     }
   } else {
     process.stdout.write(".")
