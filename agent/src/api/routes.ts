@@ -1,7 +1,7 @@
 import { Router } from "express"
 import { tipLog, agentLog, sessionTotal, isPaused, setIsPaused, resetSession, setCreatorAddress, agentState, startAgent, startDemo, stopAgent } from "../agent/loop.js"
 import { getConfig, saveConfig } from "../config/loader.js"
-import { getBalance } from "../wallet/balance.js"
+import { getBalance, getUsdtBalance } from "../wallet/balance.js"
 import { getAgentAddress, generateNewWallet } from "../wallet/setup.js"
 import { executeTip } from "../agent/executor.js"
 import { getTodayTotal, saveTipLog } from "../storage/tiplog.js"
@@ -163,6 +163,10 @@ router.post("/data/reset", (_req, res) => {
 })
 
 // ── Wallet ────────────────────────────────────────────────────
+
+router.get("/wallet/usdt-balance", async (_req, res) => {
+  res.json({ balance: await getUsdtBalance(), asset: 'USDT' })
+})
 
 router.post("/wallet/generate", async (_req, res) => {
   const result = await generateNewWallet()

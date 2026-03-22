@@ -42,10 +42,19 @@ const STATE_BADGE: Record<string, { label: string; color: string; bg: string; bo
   paused:  { label: 'Paused', color: '#60a5fa', bg: 'rgba(59,130,246,0.1)',  border: 'rgba(59,130,246,0.3)' },
 }
 
+function formatUsdt(balance: string): string {
+  return parseFloat(balance).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+
 export default function DashboardPage() {
   const { data, error, mutate } = useSWR<AgentStatus>("/api/status", fetcher, {
     refreshInterval: 3000,
   })
+  const { data: usdtData } = useSWR<{ balance: string; asset: string }>(
+    "/api/wallet/usdt-balance",
+    fetcher,
+    { refreshInterval: 3000 }
+  )
 
   const [activeTab, setActiveTab] = useState<"activity" | "log">("activity")
   const [controlling, setControlling] = useState(false)
@@ -184,7 +193,7 @@ export default function DashboardPage() {
               />
               <MetricCard
                 label="Total Tipped"
-                value={`${data!.totalTipped} ETH`}
+                value={`${formatUsdt(data!.totalTipped)} USDT`}
                 subColor="green"
               />
               <MetricCard
@@ -292,8 +301,15 @@ export default function DashboardPage() {
                   <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wide">
                     Agent Wallet
                   </h3>
-                  <p className="text-2xl font-bold text-white tabular-nums">
-                    {formatEth(data!.balance)}
+                  {usdtData?.balance ? (
+                    <p className="text-2xl font-bold tabular-nums" style={{ color: '#4ade80' }}>
+                      {formatUsdt(usdtData.balance)} USDT
+                    </p>
+                  ) : (
+                    <p className="text-2xl font-bold text-white tabular-nums">— USDT</p>
+                  )}
+                  <p className="text-xs text-zinc-600 tabular-nums">
+                    {formatEth(data!.balance)} gas
                   </p>
                   <p className="font-mono text-xs text-zinc-500">
                     {truncateAddress(data!.agentAddress)}

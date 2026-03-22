@@ -1,4 +1,4 @@
-import { sendTip, ethToWei } from "../wallet/tip.js"
+import { sendTip, sendUsdtTip, ethToWei } from "../wallet/tip.js"
 import { getConfig } from "../config/loader.js"
 import { getTodayTotal } from "../storage/tiplog.js"
 import type { TipDecision } from "../rumble/types.js"
@@ -36,11 +36,13 @@ export async function executeTip(decision: TipDecision, overrideAddress?: string
     decision.amount = maxPerEvent.toFixed(6)
   }
 
-  const weiAmount = ethToWei(decision.amount)
-
   let hash: string
   try {
-    ;({ hash } = await sendTip(addressUsed, weiAmount))
+    if (decision.asset === 'USDT') {
+      ;({ hash } = await sendUsdtTip(addressUsed, decision.amount, config.agent.network))
+    } else {
+      ;({ hash } = await sendTip(addressUsed, ethToWei(decision.amount)))
+    }
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err)
     if (msg.includes("already known") || msg.includes("nonce too low")) {
