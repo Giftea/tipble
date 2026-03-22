@@ -1,5 +1,14 @@
 import './content.css'
 
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+interface DOMStreamState {
+  watchingNow: number
+  creatorName: string
+  isLive: boolean
+  pageUrl: string
+}
+
 // ─── Page detection ───────────────────────────────────────────────────────────
 
 function isVideoPage(): boolean {
@@ -253,6 +262,99 @@ async function tryDetectCreatorWallet(): Promise<void> {
   setTimeout(attempt, 1000)
 }
 
+// ─── DOM stream monitor ───────────────────────────────────────────────────────
+
+function scrapeStreamState(): DOMStreamState {
+  const watchingSelectors = [
+    '.watching-now',
+    '[class*="watching"]',
+    '[class*="viewers"]',
+    '[class*="viewer-count"]',
+    '.live-watching',
+  ]
+
+  let watchingNow = 0
+  for (const selector of watchingSelectors) {
+    const el = document.querySelector(selector)
+    if (el?.textContent) {
+      const num = parseInt(el.textContent.replace(/[^0-9]/g, ''))
+      if (num > 0) { watchingNow = num; break }
+    }
+  }
+
+  if (watchingNow === 0) {
+    const allText = document.querySelectorAll('span, div, p')
+    for (const el of allText) {
+      const text = el.textContent?.trim() ?? ''
+      if (text.match(/^\d+\s*(watching|viewers)/i)) {
+        watchingNow = parseInt(text) || 0
+        if (watchingNow > 0) break
+      }
+    }
+  }
+
+  const liveBadge = document.querySelector('[class*="live"], .live-badge, [class*="is-live"]')
+  const isLive = !!liveBadge ||
+    document.title.toLowerCase().includes('live') ||
+    window.location.href.includes('/live/')
+
+  const creatorSelectors = [
+    '.creator-name',
+    '[class*="channel-name"]',
+    '[class*="username"]',
+    'h1[class*="title"] + * [class*="name"]',
+  ]
+  let creatorName = 'Unknown'
+  for (const selector of creatorSelectors) {
+    const el = document.querySelector(selector)
+    if (el?.textContent?.trim()) {
+      creatorName = el.textContent.trim()
+      break
+    }
+  }
+
+  return { watchingNow, creatorName, isLive, pageUrl: window.location.href }
+}
+
+function monitorStreamDOM(): void {
+  let prevState: DOMStreamState | null = null
+  let lastSentTime = 0
+
+  const check = () => {
+    if (!isVideoPage()) return
+
+    const curr = scrapeStreamState()
+    const now = Date.now()
+
+    if (now - lastSentTime < 10000) return
+    if (!curr.isLive && curr.watchingNow === 0) return
+
+    let eventType: string | null = null
+    if (prevState && curr.watchingNow > 0) {
+      const ratio = curr.watchingNow / Math.max(prevState.watchingNow, 1)
+      if (ratio >= 1.5 && prevState.watchingNow >= 5) {
+        eventType = 'viewer_spike'
+      }
+      if (curr.watchingNow >= 500 && prevState.watchingNow < 500) {
+        eventType = 'watching_now_threshold'
+      }
+    }
+
+    chrome.runtime.sendMessage({
+      type: 'DOM_STREAM_UPDATE',
+      state: curr,
+      eventType,
+      prevWatching: prevState?.watchingNow ?? 0
+    })
+
+    prevState = curr
+    lastSentTime = now
+  }
+
+  setInterval(check, 10000)
+  setTimeout(check, 3000)
+}
+
 // ─── Toast ───────────────────────────────────────────────────────────────────
 
 function showTipToast(tip: any): void {
@@ -317,9 +419,11 @@ if (document.readyState === 'loading') {
   injectBadge()
 }
 
-// Detect creator wallet on video pages
+// Detect creator wallet and start stream monitor on video pages
 if (isVideoPage()) {
+  injectBadge()
   tryDetectCreatorWallet()
+  monitorStreamDOM()
 }
 
 // Re-inject on Rumble SPA navigation

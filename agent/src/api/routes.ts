@@ -4,7 +4,10 @@ import { getConfig, saveConfig } from "../config/loader.js"
 import { getBalance, getUsdtBalance } from "../wallet/balance.js"
 import { getAgentAddress, generateNewWallet } from "../wallet/setup.js"
 import { executeTip } from "../agent/executor.js"
-import { getTodayTotal, saveTipLog } from "../storage/tiplog.js"
+import { getTodayTotal, saveTipLog, appendTip } from "../storage/tiplog.js"
+import { reasonAboutTip } from "../claude/reasoner.js"
+import type { StreamState } from "../rumble/types.js"
+import type { TipEvent } from "../agent/loop.js"
 
 const router = Router()
 
@@ -184,6 +187,75 @@ router.post("/wallet/save", (req, res) => {
   console.log("[wallet] Seed phrase save requested. Add this to your .env file:")
   console.log(`SEED_PHRASE="${seedPhrase}"`)
   res.json({ success: true, message: "Add this seed phrase to your .env file" })
+})
+
+// ── Stream events from extension DOM monitor ──────────────────────────────────
+
+router.post("/stream/event", async (req, res) => {
+  const { eventType, watchingNow, prevWatching, creatorAddress, creatorName } = req.body as {
+    eventType: string
+    watchingNow: number
+    prevWatching: number
+    creatorAddress: string
+    creatorName: string
+    pageUrl: string
+  }
+
+  const config = getConfig()
+
+  if (!config.agent.autoTippingEnabled) {
+    res.json({ success: true, tipped: false, reason: "Auto-tipping disabled" })
+    return
+  }
+
+  const curr: StreamState = {
+    num_followers: 0,
+    num_followers_total: 0,
+    num_subscribers: 0,
+    watching_now: watchingNow,
+    is_live: true,
+    latest_subscriber_username: null,
+    latest_follower_username: null,
+    timestamp: Date.now()
+  }
+
+  const prev: StreamState = { ...curr, watching_now: prevWatching }
+
+  const decision = await reasonAboutTip(prev, curr, config)
+
+  if (!decision.shouldTip) {
+    res.json({ success: true, tipped: false, reason: decision.reason })
+    return
+  }
+
+  const result = await executeTip(decision, creatorAddress)
+
+  if (!result) {
+    res.json({ success: false, error: "Tip execution failed" })
+    return
+  }
+
+  const tipEvent: TipEvent = {
+    id: Date.now().toString() + Math.random(),
+    timestamp: new Date().toISOString(),
+    reason: decision.reason,
+    amount: decision.amount,
+    asset: decision.asset,
+    txHash: result.hash,
+    eventType,
+    confidence: decision.confidence
+  }
+
+  tipLog.push(tipEvent)
+  appendTip(tipEvent)
+  agentLog.push({
+    id: tipEvent.id,
+    timestamp: new Date().toTimeString().slice(0, 8),
+    type: 'TX',
+    message: `${decision.amount} ${decision.asset} → ${creatorName} | ${decision.reason} | ${result.hash.slice(0, 10)}...`
+  })
+
+  res.json({ success: true, tipped: true, hash: result.hash })
 })
 
 export default router

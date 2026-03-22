@@ -127,6 +127,44 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     return true
   }
 
+  if (message.type === 'DOM_STREAM_UPDATE') {
+    ;(async () => {
+      const settings = await getSettings()
+
+      await chrome.storage.local.set({
+        domStreamState: message.state,
+        domEventType: message.eventType
+      })
+
+      if (message.eventType) {
+        try {
+          const stored = await chrome.storage.local.get('currentCreatorWallet')
+          const creatorAddress = (stored.currentCreatorWallet as { evm?: string } | undefined)?.evm
+
+          if (creatorAddress) {
+            await fetch(`${settings.agentApiUrl}/api/stream/event`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                eventType: message.eventType,
+                watchingNow: message.state.watchingNow,
+                prevWatching: message.prevWatching,
+                creatorAddress,
+                creatorName: message.state.creatorName,
+                pageUrl: message.state.pageUrl
+              })
+            })
+          }
+        } catch {
+          // Agent offline — ignore
+        }
+      }
+
+      sendResponse({ success: true })
+    })()
+    return true
+  }
+
   if (message.type === 'PAUSE_AGENT') {
     getSettings().then((s) => {
       fetch(`${s.agentApiUrl}/api/agent/pause`, { method: 'POST' }).then(() =>
