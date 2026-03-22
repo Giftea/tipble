@@ -290,6 +290,8 @@ new MutationObserver(() => {
           }
         })
       }, 1000)
+    } else {
+      chrome.runtime.sendMessage({ type: 'CLEAR_CREATOR_WALLET' })
     }
   }
 }).observe(document, { subtree: true, childList: true })

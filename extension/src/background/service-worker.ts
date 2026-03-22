@@ -74,16 +74,18 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message.type === 'GET_STATUS') {
-    chrome.storage.local.get(['cachedStatus', 'lastPolled', 'currentCreatorWallet', 'currentPageUrl'], (result) =>
-      sendResponse(result)
-    )
+    chrome.storage.local.get(['cachedStatus', 'lastPolled'], (local) => {
+      chrome.storage.session.get(['currentCreatorWallet', 'currentPageUrl'], (session) => {
+        sendResponse({ ...local, ...session })
+      })
+    })
     return true
   }
 
   if (message.type === 'CREATOR_WALLET_DETECTED') {
     const { addresses, pageUrl } = message
 
-    chrome.storage.local.set({
+    chrome.storage.session.set({
       currentCreatorWallet: addresses,
       currentPageUrl: pageUrl
     })
@@ -104,6 +106,20 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
         console.log('[Tipble BG] Creator address sent to agent:', data)
       } catch (err) {
         console.error('[Tipble BG] Failed to update agent:', err)
+      }
+      sendResponse({ success: true })
+    })
+    return true
+  }
+
+  if (message.type === 'CLEAR_CREATOR_WALLET') {
+    chrome.storage.session.remove(['currentCreatorWallet', 'currentPageUrl'])
+
+    getSettings().then(async (settings) => {
+      try {
+        await fetch(`${settings.agentApiUrl}/api/creator/clear`, { method: 'POST' })
+      } catch (err) {
+        console.error('[Tipble BG] Failed to clear creator address on agent:', err)
       }
       sendResponse({ success: true })
     })

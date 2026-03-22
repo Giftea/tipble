@@ -1,5 +1,5 @@
 import { Router } from "express"
-import { tipLog, agentLog, sessionTotal, isPaused, setIsPaused, resetSession, setCreatorAddress, agentState, startAgent, startDemo, stopAgent } from "../agent/loop.js"
+import { tipLog, agentLog, sessionTotal, isPaused, setIsPaused, resetSession, setCreatorAddress, clearCreatorAddress, agentState, startAgent, startDemo, stopAgent } from "../agent/loop.js"
 import { getConfig, saveConfig } from "../config/loader.js"
 import { getBalance, getUsdtBalance } from "../wallet/balance.js"
 import { getAgentAddress, generateNewWallet } from "../wallet/setup.js"
@@ -105,6 +105,12 @@ router.post("/creator/set", (req, res) => {
 
   console.log(`[api] Creator address updated to: ${address}${pageUrl ? ` (from ${pageUrl})` : ''}`)
   res.json({ success: true, address })
+})
+
+router.post("/creator/clear", (_req, res) => {
+  clearCreatorAddress()
+  console.log("[api] Creator address cleared")
+  res.json({ success: true })
 })
 
 // ── Agent control ─────────────────────────────────────────────

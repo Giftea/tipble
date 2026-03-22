@@ -58,6 +58,11 @@ export function setCreatorAddress(address: string): void {
   log('SYS', `Creator address overridden: ${address}`)
 }
 
+export function clearCreatorAddress(): void {
+  overrideCreatorAddress = null
+  log('SYS', 'Creator address cleared')
+}
+
 // ─── Tick ─────────────────────────────────────────────────────────────────────
 
 async function tick(prevState: StreamState, curr: StreamState): Promise<void> {
