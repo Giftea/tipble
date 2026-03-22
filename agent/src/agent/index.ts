@@ -1,6 +1,26 @@
 import dotenv from "dotenv"
 dotenv.config()
 
+process.on('unhandledRejection', (reason: any) => {
+  const isTimeout = reason?.code === 'TIMEOUT' ||
+    reason?.message?.includes('timeout')
+  if (isTimeout) {
+    console.log('[agent] RPC timeout — will retry on next tick')
+    return
+  }
+  console.error('[agent] Unhandled rejection:', reason)
+})
+
+process.on('uncaughtException', (err: any) => {
+  const isTimeout = err?.code === 'TIMEOUT' ||
+    err?.message?.includes('timeout')
+  if (isTimeout) {
+    console.log('[agent] RPC timeout — continuing...')
+    return
+  }
+  console.error('[agent] Uncaught exception:', err)
+})
+
 import { logBalances } from "../wallet/balance.js"
 import { generateNewWallet } from "../wallet/setup.js"
 import { getConfig } from "../config/loader.js"
