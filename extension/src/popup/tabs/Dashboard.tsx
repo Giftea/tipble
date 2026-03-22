@@ -173,7 +173,7 @@ export default function Dashboard() {
             })()}
             {status.demoMode && (
               <span style={{ marginLeft: 'auto', fontSize: 10, padding: '2px 6px', borderRadius: 4, background: 'rgba(239,159,39,0.12)', color: '#EF9F27', border: '1px solid rgba(239,159,39,0.3)', flexShrink: 0 }}>
-                DEMO
+                testnet
               </span>
             )}
           </div>}
