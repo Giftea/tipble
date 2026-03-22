@@ -7,7 +7,6 @@ chrome.runtime.onInstalled.addListener(() => {
   chrome.alarms.create('pollAgent', {
     periodInMinutes: 0.17 // ~10 seconds
   })
-  console.log('[Tipble] Background worker started')
 })
 
 chrome.alarms.onAlarm.addListener(async (alarm) => {
@@ -102,10 +101,9 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
             displayName: 'Rumble Creator'
           })
         })
-        const data = await res.json()
-        console.log('[Tipble BG] Creator address sent to agent:', data)
-      } catch (err) {
-        console.error('[Tipble BG] Failed to update agent:', err)
+        await res.json()
+      } catch {
+        // silently ignore agent update failures
       }
       sendResponse({ success: true })
     })
@@ -118,8 +116,8 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     getSettings().then(async (settings) => {
       try {
         await fetch(`${settings.agentApiUrl}/api/creator/clear`, { method: 'POST' })
-      } catch (err) {
-        console.error('[Tipble BG] Failed to clear creator address on agent:', err)
+      } catch {
+        // silently ignore agent clear failures
       }
       sendResponse({ success: true })
     })

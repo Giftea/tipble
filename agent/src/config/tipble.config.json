@@ -6,7 +6,13 @@
   "rules": {
     "followerMilestones": {
       "enabled": true,
-      "milestones": [100, 500, 1000, 5000, 10000],
+      "milestones": [
+        100,
+        500,
+        1000,
+        5000,
+        10000
+      ],
       "tipAmount": "1.00",
       "asset": "USDT"
     },

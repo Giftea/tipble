@@ -42,6 +42,12 @@ export async function sendManualTip(
   return res.json()
 }
 
+export async function fetchUsdtBalance(): Promise<{ balance: string; asset: string }> {
+  const url = await getAgentUrl()
+  const res = await fetch(`${url}/api/wallet/usdt-balance`)
+  return res.json()
+}
+
 export async function generateWallet(): Promise<{ seedPhrase: string; address: string }> {
   const url = await getAgentUrl()
   const res = await fetch(`${url}/api/wallet/generate`, { method: 'POST' })

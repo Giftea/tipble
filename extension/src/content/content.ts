@@ -1,5 +1,3 @@
-console.log('[Tipble] Content script loaded on:', window.location.href)
-
 import './content.css'
 
 // ─── Page detection ───────────────────────────────────────────────────────────
@@ -62,7 +60,6 @@ function injectBadge() {
   badge.prepend(dot)
 
   document.documentElement.appendChild(badge)
-  console.log('[Tipble] Badge injected, element:', badge)
 
   let seconds = 0
   const timer = setInterval(() => {
@@ -82,59 +79,42 @@ function injectBadge() {
 // ─── Creator wallet detection ─────────────────────────────────────────────────
 
 async function detectCreatorWallet(): Promise<{ evm: string | null; btc: string | null }> {
-  console.log('[Tipble] Starting wallet detection...')
-
   // Step 1 - Find tip button
   const tipButton = document.querySelector('button[hx-get="/-htmx/wallet/payment/qr-modal"]')
-  console.log('[Tipble] Tip button found:', !!tipButton)
   if (!tipButton) return { evm: null, btc: null }
 
   // Step 2 - Extract eid
   const hxValsRaw = tipButton.getAttribute('hx-vals')
-  console.log('[Tipble] hx-vals raw:', hxValsRaw)
   const hxVals = JSON.parse(hxValsRaw || '{}')
   const eid = hxVals.eid
-  console.log('[Tipble] eid:', eid)
   if (!eid) return { evm: null, btc: null }
 
   // Step 3 - Fetch QR modal
   const modalUrl = `https://rumble.com/-htmx/wallet/payment/qr-modal?eid=${eid}&dt=c`
-  console.log('[Tipble] Fetching modal URL:', modalUrl)
 
   try {
     const modalRes = await fetch(modalUrl, { credentials: 'include' })
-    console.log('[Tipble] Modal response status:', modalRes.status)
     const modalHtml = await modalRes.text()
-    console.log('[Tipble] Modal HTML length:', modalHtml.length)
-    console.log('[Tipble] Modal HTML preview:', modalHtml.substring(0, 300))
 
     // Step 4 - Extract payment_url (try two patterns)
     const paymentUrlMatch =
       modalHtml.match(/payment_url&#34;:&#34;(https:\/\/pay\.rumble\.com\/\?[^&]*(?:&amp;[^&"']*)*)/) ??
       modalHtml.match(/href="(https:\/\/pay\.rumble\.com\/\?[^"]+)"/)
-    console.log('[Tipble] payment_url match:', paymentUrlMatch?.[1])
-    if (!paymentUrlMatch) {
-      console.log('[Tipble] Failed at payment_url extraction')
-      return { evm: null, btc: null }
-    }
+    if (!paymentUrlMatch) return { evm: null, btc: null }
+
     const paymentUrl = paymentUrlMatch[1]
       .replace(/&amp;/g, '&')
       .replace(/&#34;/g, '')
       .replace(/;}/g, '')
       .trim()
-    console.log('[Tipble] payment_url cleaned:', paymentUrl)
 
     // Step 5 - Fetch network selector
     const networkUrl =
       `https://rumble.com/-htmx/wallet/payment/qr-address` +
       `?action=select-network&payment_url=${encodeURIComponent(paymentUrl)}`
-    console.log('[Tipble] Fetching network URL:', networkUrl)
 
     const networkRes = await fetch(networkUrl, { credentials: 'include' })
-    console.log('[Tipble] Network response status:', networkRes.status)
     const networkHtml = await networkRes.text()
-    console.log('[Tipble] Network HTML length:', networkHtml.length)
-    console.log('[Tipble] Network HTML preview:', networkHtml.substring(0, 500))
 
     // Step 6 - Extract addresses (handle both plain and HTML-encoded quotes)
     const evmMatch = networkHtml.match(
@@ -143,8 +123,6 @@ async function detectCreatorWallet(): Promise<{ evm: string | null; btc: string 
     const btcMatch = networkHtml.match(
       /(?:"address"|&#34;address&#34;)\s*:\s*(?:"|&#34;)(bc1[a-zA-HJ-NP-Z0-9]{25,90})(?:"|&#34;)/
     )
-    console.log('[Tipble] EVM match:', evmMatch?.[1])
-    console.log('[Tipble] BTC match:', btcMatch?.[1])
 
     // Step 6b - Fallback: parse hx-vals attributes in network HTML
     const allHxVals = networkHtml.match(/hx-vals='([^']+)'/g) ||
@@ -174,10 +152,8 @@ async function detectCreatorWallet(): Promise<{ evm: string | null; btc: string 
     const evm = evmMatch?.[1] ?? evmAddress
     const btc = btcMatch?.[1] ?? btcAddress
 
-    console.log('[Tipble] Final addresses:', { evm, btc })
     return { evm, btc }
-  } catch (err) {
-    console.error('[Tipble] Detection error:', err)
+  } catch {
     return { evm: null, btc: null }
   }
 }

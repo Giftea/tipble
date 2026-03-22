@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { sendManualTip } from '../../lib/api'
+import { sendManualTip, fetchUsdtBalance } from '../../lib/api'
 import type { AgentStatus } from '../../types'
 
 interface CreatorWallet {
@@ -16,6 +16,7 @@ interface TipSuccess {
 
 function explorerUrl(hash: string, network: string): string {
   if (network === 'polygon') return `https://polygonscan.com/tx/${hash}`
+  if (network === 'base-sepolia') return `https://sepolia.basescan.org/tx/${hash}`
   return `https://sepolia.etherscan.io/tx/${hash}`
 }
 
@@ -23,10 +24,11 @@ export default function Dashboard() {
   const [status, setStatus] = useState<AgentStatus | null>(null)
   const [offline, setOffline] = useState(false)
   const [creatorWallet, setCreatorWallet] = useState<CreatorWallet | null>(null)
+  const [usdtBalance, setUsdtBalance] = useState<string | null>(null)
   const [showTipForm, setShowTipForm] = useState(false)
   const [tipReason, setTipReason] = useState('')
   const [tipAmount, setTipAmount] = useState('0.50')
-  const [tipAsset, setTipAsset] = useState('ETH')
+  const [tipAsset, setTipAsset] = useState('USDT')
   const [tipping, setTipping] = useState(false)
   const [tipError, setTipError] = useState<string | null>(null)
   const [tipSuccess, setTipSuccess] = useState<TipSuccess | null>(null)
@@ -43,12 +45,13 @@ export default function Dashboard() {
         setCreatorWallet(result.currentCreatorWallet)
       }
     })
+    fetchUsdtBalance().then(r => setUsdtBalance(r.balance)).catch(() => {})
   }, [])
 
   function resetForm() {
     setTipReason('')
     setTipAmount('0.50')
-    setTipAsset('ETH')
+    setTipAsset('USDT')
     setTipError(null)
     setTipSuccess(null)
     setShowTipForm(false)
@@ -127,7 +130,7 @@ export default function Dashboard() {
       {status && (
         <>
           {/* Creator info */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#050d1e', border: '1px solid #0b1e38', borderRadius: 8, padding: 10, marginBottom: 8 }}>
+          {status.creator?.walletAddress && <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#050d1e', border: '1px solid #0b1e38', borderRadius: 8, padding: 10, marginBottom: 8 }}>
             <div style={{
               width: 36, height: 36, borderRadius: '50%',
               background: 'rgba(0,200,255,0.08)', border: '1px solid rgba(0,200,255,0.25)',
@@ -151,14 +154,24 @@ export default function Dashboard() {
                 DEMO
               </span>
             )}
+          </div>}
+
+          {/* USDT Balance */}
+          <div style={{ background: '#050d1e', border: '1px solid #0b1e38', borderRadius: 8, padding: '8px 10px', marginBottom: 8 }}>
+            <div style={{ fontSize: 10, color: '#5e8fbe', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>Wallet Balance</div>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
+              <span style={{ fontSize: 20, fontWeight: 700, color: '#00C8FF', fontVariantNumeric: 'tabular-nums' }}>
+                {usdtBalance != null ? parseFloat(usdtBalance).toFixed(2) : '—'}
+              </span>
+              <span style={{ fontSize: 12, color: '#3a6a96', fontWeight: 600 }}>USDT</span>
+            </div>
           </div>
 
           {/* Metrics grid */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 10 }}>
             {[
               { label: 'Tips Fired', value: status.tipsCount?.toString() ?? '0' },
-              { label: 'Total Tipped', value: status.totalTipped ?? '0' },
-              { label: 'Balance', value: status.balance ?? '—' },
+              { label: 'Total Tipped', value: `${status.totalTipped ?? '0'} USDT` },
               { label: 'Network', value: status.network ?? '—' }
             ].map(m => (
               <div key={m.label} style={{ background: '#050d1e', border: '1px solid #0b1e38', borderRadius: 8, padding: '8px 10px' }}>
@@ -195,7 +208,7 @@ export default function Dashboard() {
       )}
 
       {/* Send Tip */}
-      {showTipForm ? (
+      {creatorWallet?.evm && (showTipForm ? (
         <div style={{ background: '#050d1e', border: '1px solid #0b1e38', borderRadius: 8, padding: 10 }}>
 
           {/* Success state */}
@@ -248,9 +261,9 @@ export default function Dashboard() {
                       color: '#e8f4ff', fontSize: 13, outline: 'none'
                     }}
                   >
-                    <option value="ETH">ETH</option>
                     <option value="USDT">USDT</option>
                     <option value="XAUT">XAUT</option>
+                    <option value="ETH">ETH</option>
                     <option value="BTC">BTC</option>
                   </select>
                 </div>
@@ -325,7 +338,7 @@ export default function Dashboard() {
         >
           Send Manual Tip
         </button>
-      )}
+      ))}
     </div>
   )
 }
