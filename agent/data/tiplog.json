@@ -278,5 +278,65 @@
     "txHash": "0x4c4b0dd3326e785b742dc1aecaed2962472bbb47ddb7e0da2dbfa1c564cdf4a5",
     "eventType": "new_subscriber",
     "confidence": 1
+  },
+  {
+    "id": "1774168188808",
+    "timestamp": "2026-03-22T08:29:48.808Z",
+    "reason": "Viewer spike from 120 to 210",
+    "amount": "0.0003",
+    "asset": "ETH",
+    "txHash": "0x2d31f580c40ed6dfed2b267af5ab398844e77f2148d382d868f5896f792843e5",
+    "eventType": "viewer_spike",
+    "confidence": 0.9
+  },
+  {
+    "id": "1774168198903",
+    "timestamp": "2026-03-22T08:29:58.903Z",
+    "reason": "Reached 1000 follower milestone",
+    "amount": "0.001",
+    "asset": "ETH",
+    "txHash": "0xd10b6ef0516fbc6f7c3d8a0a7871e79b7a16de8f5eacad2e115621843d7ffff2",
+    "eventType": "follower_milestone",
+    "confidence": 1
+  },
+  {
+    "id": "1774168208481",
+    "timestamp": "2026-03-22T08:30:08.481Z",
+    "reason": "Reached 1000 follower milestone",
+    "amount": "0.001",
+    "asset": "ETH",
+    "txHash": "0x198e0ae424bf815286842225aff50055107532d571d94eb6ad9da11328e39b39",
+    "eventType": "follower_milestone",
+    "confidence": 1
+  },
+  {
+    "id": "1774168218802",
+    "timestamp": "2026-03-22T08:30:18.802Z",
+    "reason": "New subscriber CryptoFan42 joined the stream",
+    "amount": "0.0005",
+    "asset": "ETH",
+    "txHash": "0xd47936d524015161680e33c8c35b14d0f391ec7a35349edf4e114483fa925793",
+    "eventType": "new_subscriber",
+    "confidence": 1
+  },
+  {
+    "id": "1774168228819",
+    "timestamp": "2026-03-22T08:30:28.819Z",
+    "reason": "Viewer spike from 410 to 620 viewers",
+    "amount": "0.0003",
+    "asset": "ETH",
+    "txHash": "0x32637576667bc20a76c58c7788228a7f1d18ad2dc4fc3424e202342328fc7336",
+    "eventType": "viewer_spike",
+    "confidence": 0.9
+  },
+  {
+    "id": "1774168249119",
+    "timestamp": "2026-03-22T08:30:49.119Z",
+    "reason": "New subscriber TipbleUser joined the stream",
+    "amount": "0.0005",
+    "asset": "ETH",
+    "txHash": "0x722c712c877eaf2f9c18aa1c019e996048efffc7690e98396151a1b92b092e62",
+    "eventType": "new_subscriber",
+    "confidence": 1
   }
 ]

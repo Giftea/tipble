@@ -7,12 +7,21 @@ export interface TipEvent {
   txHash: string
   eventType: string
   confidence: number
+  reasoning?: string
+}
+
+export interface AgentLogEntry {
+  id: string
+  timestamp: string
+  type: 'SYS' | 'INF' | 'EVT' | 'LLM' | 'ACT' | 'TX'
+  message: string
 }
 
 export interface AgentStatus {
   running: boolean
   network: "sepolia" | "polygon"
   demoMode: boolean
+  agentState: 'idle' | 'running' | 'demo' | 'paused'
   creator: {
     walletAddress: string
     displayName: string
@@ -22,6 +31,8 @@ export interface AgentStatus {
   tipsCount: number
   totalTipped: string
   recentTips: TipEvent[]
+  agentLog: AgentLogEntry[]
+  eventsCount: number
 }
 
 export interface TipbleConfig {

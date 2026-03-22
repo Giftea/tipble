@@ -58,4 +58,5 @@ export interface TipDecision {
   reason: string
   eventType: string
   confidence: number
+  reasoning?: string
 }

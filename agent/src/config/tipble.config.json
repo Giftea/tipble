@@ -6,49 +6,43 @@
   "rules": {
     "followerMilestones": {
       "enabled": true,
-      "milestones": [
-        100,
-        500,
-        1000,
-        5000,
-        10000
-      ],
-      "tipAmount": "0.001",
-      "asset": "ETH"
+      "milestones": [100, 500, 1000, 5000, 10000],
+      "tipAmount": "1.00",
+      "asset": "USDT"
     },
     "newSubscriber": {
       "enabled": true,
-      "tipAmount": "0.0005",
-      "asset": "ETH"
+      "tipAmount": "0.50",
+      "asset": "USDT"
     },
     "viewerSpike": {
       "enabled": true,
       "thresholdMultiplier": 1.5,
       "minimumViewers": 10,
-      "tipAmount": "0.0003",
-      "asset": "ETH"
+      "tipAmount": "0.25",
+      "asset": "USDT"
     },
     "watchingNow": {
       "enabled": true,
       "threshold": 500,
-      "tipAmount": "0.0005",
-      "asset": "ETH"
+      "tipAmount": "0.50",
+      "asset": "USDT"
     },
     "newFollower": {
       "enabled": false,
-      "tipAmount": "0.0001",
-      "asset": "ETH"
+      "tipAmount": "0.10",
+      "asset": "USDT"
     }
   },
   "budget": {
-    "maxTipPerEvent": "0.005",
-    "dailyLimitUsdt": "0.02",
-    "sessionLimitUsdt": "0.01"
+    "maxTipPerEvent": "2.00",
+    "dailyLimitUsdt": "10.00",
+    "sessionLimitUsdt": "5.00"
   },
   "agent": {
     "heartbeatMs": 10000,
     "demoMode": true,
-    "network": "sepolia",
+    "network": "base-sepolia",
     "llmEnabled": true,
     "llmConfidenceThreshold": 0.7,
     "autoTippingEnabled": true

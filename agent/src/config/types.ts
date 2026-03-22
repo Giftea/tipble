@@ -1,5 +1,5 @@
 export type AssetType = "USDT" | "XAUT" | "BTC" | "ETH"
-export type NetworkType = "sepolia" | "polygon"
+export type NetworkType = "sepolia" | "polygon" | "base-sepolia"
 
 export interface CreatorConfig {
   walletAddress: string

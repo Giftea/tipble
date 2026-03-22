@@ -62,8 +62,11 @@ Respond ONLY with raw JSON, no markdown, no explanation:
       reason: "Parse error",
       eventType: "none",
       confidence: 0,
+      reasoning: text,
     }
   }
+
+  decision.reasoning = text
 
   if (decision.confidence < config.agent.llmConfidenceThreshold) {
     decision.shouldTip = false

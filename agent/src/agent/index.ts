@@ -1,9 +1,8 @@
 import dotenv from "dotenv"
 dotenv.config()
 
-import { runLoop } from "./loop.js"
 import { logBalances } from "../wallet/balance.js"
-import { getAgentAddress, generateNewWallet } from "../wallet/setup.js"
+import { generateNewWallet } from "../wallet/setup.js"
 import { getConfig } from "../config/loader.js"
 import { startServer } from "../api/server.js"
 
@@ -28,7 +27,7 @@ async function main(): Promise<void> {
 
   await logBalances()
   startServer()
-  await runLoop()
+  console.log("[agent] Ready. Use POST /api/agent/start or /api/agent/demo to begin.")
 }
 
 main().catch(console.error)

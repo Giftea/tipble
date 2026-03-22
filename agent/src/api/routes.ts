@@ -1,5 +1,5 @@
 import { Router } from "express"
-import { tipLog, sessionTotal, isPaused, setIsPaused, resetSession, setCreatorAddress } from "../agent/loop.js"
+import { tipLog, agentLog, sessionTotal, isPaused, setIsPaused, resetSession, setCreatorAddress, agentState, startAgent, startDemo, stopAgent } from "../agent/loop.js"
 import { getConfig, saveConfig } from "../config/loader.js"
 import { getBalance } from "../wallet/balance.js"
 import { getAgentAddress, generateNewWallet } from "../wallet/setup.js"
@@ -24,6 +24,9 @@ router.get("/status", async (_req, res) => {
     recentTips: tipLog.slice(-20).reverse(),
     todayTotal: getTodayTotal(),
     sessionTotal,
+    agentState,
+    agentLog: agentLog.slice(-50).reverse(),
+    eventsCount: agentLog.filter(l => l.type === 'EVT').length,
     limitsEnforced: true,
   })
 })
@@ -116,6 +119,22 @@ router.post("/agent/resume", (_req, res) => {
   setIsPaused(false)
   console.log("[api] Agent resumed")
   res.json({ success: true, paused: false })
+})
+
+router.post("/agent/start", (_req, res) => {
+  startAgent()
+  res.json({ success: true, state: 'running' })
+})
+
+router.post("/agent/demo", (req, res) => {
+  const single = (req.body as { single?: boolean })?.single === true
+  startDemo(single)
+  res.json({ success: true, state: single ? agentState : 'demo' })
+})
+
+router.post("/agent/stop", (_req, res) => {
+  stopAgent()
+  res.json({ success: true, state: 'idle' })
 })
 
 router.get("/agent/status", (_req, res) => {

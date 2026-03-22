@@ -7,6 +7,7 @@ dotenv.config()
 
 const SEED_PHRASE = process.env.SEED_PHRASE
 const SEPOLIA_RPC_URL = process.env.SEPOLIA_RPC_URL
+const BASE_SEPOLIA_RPC_URL = process.env.BASE_SEPOLIA_RPC_URL
 const POLYGON_RPC_URL = process.env.POLYGON_RPC_URL
 
 if (!SEED_PHRASE) {
@@ -14,7 +15,10 @@ if (!SEED_PHRASE) {
 }
 
 const network = getConfig().agent.network
-const provider = network === "sepolia" ? SEPOLIA_RPC_URL : POLYGON_RPC_URL
+const provider =
+  network === 'polygon'      ? POLYGON_RPC_URL :
+  network === 'base-sepolia' ? BASE_SEPOLIA_RPC_URL :
+  SEPOLIA_RPC_URL
 
 export const wdk = new WDK(SEED_PHRASE)
   .registerWallet("ethereum", WalletManagerEvm, { provider })
