@@ -17,7 +17,7 @@ const TYPE_STYLES: Record<AgentLogEntry['type'], TypeStyle> = {
   TX:  { bg: 'rgba(20,184,166,0.15)',  text: '#2dd4bf' },
 }
 
-export default function AgentLog({ entries }: { entries: AgentLogEntry[] }) {
+export default function AgentLog({ entries, onClear }: { entries: AgentLogEntry[]; onClear?: () => void }) {
   const bottomRef = useRef<HTMLDivElement>(null)
 
   // entries arrive newest-first; display chronologically (oldest first, newest at bottom)
@@ -28,6 +28,17 @@ export default function AgentLog({ entries }: { entries: AgentLogEntry[] }) {
   }, [entries.length])
 
   return (
+    <div>
+      {onClear && (
+        <div className="flex justify-end mb-2">
+          <button
+            onClick={onClear}
+            className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors px-2 py-1 rounded border border-zinc-700 hover:border-zinc-500"
+          >
+            Clear log
+          </button>
+        </div>
+      )}
     <div
       className="overflow-y-auto rounded-lg border border-zinc-800 bg-zinc-950 p-3 font-mono text-xs space-y-0.5"
       style={{ height: "calc(100vh - 300px)", minHeight: 300 }}
@@ -52,6 +63,7 @@ export default function AgentLog({ entries }: { entries: AgentLogEntry[] }) {
         })
       )}
       <div ref={bottomRef} />
+    </div>
     </div>
   )
 }

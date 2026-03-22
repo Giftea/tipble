@@ -192,6 +192,12 @@ router.post("/data/reset", (_req, res) => {
   res.json({ success: true, message: "Data cleared" })
 })
 
+router.post("/agent/log/clear", (_req, res) => {
+  agentLog.splice(0, agentLog.length)
+  console.log("[api] Agent log cleared")
+  res.json({ success: true })
+})
+
 // ── Wallet ────────────────────────────────────────────────────
 
 router.get("/wallet/usdt-balance", async (_req, res) => {
@@ -228,6 +234,14 @@ router.post("/stream/event", async (req, res) => {
     res.json({ success: true, tipped: false, reason: "Auto-tipping disabled" })
     return
   }
+
+  // Log the incoming event
+  agentLog.push({
+    id: Date.now().toString() + Math.random(),
+    timestamp: new Date().toTimeString().slice(0, 8),
+    type: 'EVT',
+    message: `${eventType} — viewer: ${watchingNow} (prev: ${prevWatching}) from ${creatorName ?? creatorAddress}`
+  })
 
   // Deterministic rules — skip Claude
   let decision: { shouldTip: boolean; amount: string; asset: string; reason: string; eventType: string; confidence: number }

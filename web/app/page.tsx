@@ -6,7 +6,6 @@ import type { AgentStatus } from "@/types"
 import MetricCard from "@/components/MetricCard"
 import ActivityFeed from "@/components/ActivityFeed"
 import AgentLog from "@/components/AgentLog"
-import ManualTipButton from "@/components/ManualTipButton"
 import { formatEth } from "@/lib/utils"
 
 const fetcher = (url: string) =>
@@ -114,7 +113,6 @@ export default function DashboardPage() {
             )}
             {stateBadge.label}
           </span>
-          <ManualTipButton />
         </div>
       </div>
 
@@ -242,7 +240,10 @@ export default function DashboardPage() {
                 {activeTab === "activity" ? (
                   <ActivityFeed tips={data?.recentTips ?? []} network={data?.network ?? "sepolia"} />
                 ) : (
-                  <AgentLog entries={agentLogEntries} />
+                  <AgentLog entries={agentLogEntries} onClear={async () => {
+                    await fetch("/api/agent/log/clear", { method: "POST" })
+                    await mutate()
+                  }} />
                 )}
               </div>
 

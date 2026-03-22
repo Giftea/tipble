@@ -25,10 +25,13 @@ const fetcher = (url: string) =>
 
 const EVENT_STYLES: Record<string, { label: string; color: string; bg: string }> = {
   follower_milestone: { label: "Milestone",   color: "#a78bfa", bg: "rgba(167,139,250,0.1)" },
-  new_subscriber:    { label: "New Sub",      color: "#00C8FF", bg: "rgba(0,200,255,0.1)"   },
-  viewer_spike:      { label: "Viewer Spike", color: "#EF9F27", bg: "rgba(239,159,39,0.1)"  },
-  watching_now:      { label: "Watching Now", color: "#38bdf8", bg: "rgba(56,189,248,0.1)"  },
-  manual:            { label: "Manual",       color: "#94a3b8", bg: "rgba(148,163,184,0.1)" },
+  new_subscriber:     { label: "New Sub",     color: "#00C8FF", bg: "rgba(0,200,255,0.1)"   },
+  viewer_spike:       { label: "Spike",       color: "#EF9F27", bg: "rgba(239,159,39,0.1)"  },
+  new_viewer:         { label: "New Viewer",  color: "#5dcaa5", bg: "rgba(93,202,165,0.1)"  },
+  watch_time_reached: { label: "Watch Time",  color: "#c084fc", bg: "rgba(192,132,252,0.1)" },
+  subscriber_action:  { label: "Subscribed",  color: "#f472b6", bg: "rgba(244,114,182,0.1)" },
+  watching_now:       { label: "Watching Now",color: "#38bdf8", bg: "rgba(56,189,248,0.1)"  },
+  manual:             { label: "Manual",      color: "#94a3b8", bg: "rgba(148,163,184,0.1)" },
 }
 
 function EventBadge({ type }: { type: string }) {
@@ -128,8 +131,8 @@ export default function HistoryPage() {
         {/* Summary row */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <StatCard label="Total tips fired"  value={tips ? String(tips.length) : "—"} />
-          <StatCard label="Total ETH tipped"  value={tips ? `${totalTipped} ETH` : "—"} />
-          <StatCard label="Highest single tip" value={tips && tips.length ? `${highestTip} ETH` : "—"} />
+          <StatCard label="Total tipped"       value={tips ? `${totalTipped} USDT` : "—"} />
+          <StatCard label="Highest single tip" value={tips && tips.length ? `${highestTip} USDT` : "—"} />
         </div>
 
         {/* Table */}
