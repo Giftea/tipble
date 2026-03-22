@@ -1,0 +1,11 @@
+{
+  "name": "tipble",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently --names \"agent,web\" --prefix-colors \"cyan,magenta\" \"npm run dev --prefix agent\" \"npm run dev --prefix web\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
