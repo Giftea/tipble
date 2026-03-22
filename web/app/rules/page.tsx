@@ -538,7 +538,7 @@ export default function RulesPage() {
                 />
               </FieldRow>
               <div className="col-span-full text-xs text-zinc-500">
-                Works for both livestreams and regular videos.
+                Creator gets tipped after you&apos;ve watched their video or livestream for this many minutes. Timer resets when you navigate to a new video.
               </div>
             </RuleCard>
 

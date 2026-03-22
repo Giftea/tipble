@@ -20,6 +20,7 @@ function isExtensionValid(): boolean {
 }
 
 function safeSendMessage(message: any): void {
+  console.log('[Tipble] Sending message:', message.type)
   try {
     chrome.runtime.sendMessage(message, (_response) => {
       if (chrome.runtime.lastError) {
@@ -37,7 +38,8 @@ function safeSendMessage(message: any): void {
 
 let watchSeconds = 0
 let watchTimerFired = false
-let isVideoPlaying = false
+let watchInterval: ReturnType<typeof setInterval> | null = null
+let watchThresholdSeconds = 30 * 60
 
 // ─── Live detection ───────────────────────────────────────────────────────────
 
@@ -417,34 +419,45 @@ function checkLiveStatus(): void {
 
 // ─── Watch time tracking ──────────────────────────────────────────────────────
 
-function setupWatchTimeTracking(): void {
-  const video = document.querySelector('video')
-  if (!video) {
-    setTimeout(setupWatchTimeTracking, 2000)
-    return
-  }
+function startWatchTimeTracking(): void {
+  if (watchInterval) clearInterval(watchInterval)
+  watchSeconds = 0
+  watchTimerFired = false
 
-  video.addEventListener('play', () => { isVideoPlaying = true })
-  video.addEventListener('pause', () => { isVideoPlaying = false })
+  watchInterval = setInterval(() => {
+    if (!isExtensionValid()) {
+      clearInterval(watchInterval!)
+      return
+    }
+    const video = document.querySelector('video')
+    if (!video || video.paused) return
 
-  setInterval(() => {
-    if (!isExtensionValid()) return
-    if (!isVideoPlaying) return
     watchSeconds++
-    ;(async () => {
-      const config = await chrome.storage.local.get('tipbleRules')
-      const rules = config.tipbleRules as { watchTime?: { thresholdMinutes?: number } } | undefined
-      const thresholdSeconds = (rules?.watchTime?.thresholdMinutes ?? 30) * 60
-      if (watchSeconds >= thresholdSeconds && !watchTimerFired) {
-        watchTimerFired = true
-        safeSendMessage({
-          type: 'WATCH_TIME_REACHED',
-          watchSeconds,
-          pageUrl: window.location.href
-        })
-      }
-    })()
+
+    if (watchSeconds >= watchThresholdSeconds && !watchTimerFired) {
+      watchTimerFired = true
+      safeSendMessage({
+        type: 'WATCH_TIME_REACHED',
+        watchSeconds,
+        pageUrl: window.location.href
+      })
+    }
   }, 1000)
+}
+
+async function loadWatchThreshold(): Promise<void> {
+  try {
+    const result = await chrome.storage.local.get('cachedStatus')
+    const cached = result.cachedStatus as { rules?: { watchTime?: { thresholdMinutes?: number } }; config?: { rules?: { watchTime?: { thresholdMinutes?: number } } } } | undefined
+    const minutes =
+      cached?.rules?.watchTime?.thresholdMinutes ??
+      cached?.config?.rules?.watchTime?.thresholdMinutes ??
+      1
+    watchThresholdSeconds = minutes * 60
+    console.log('[Tipble] Watch threshold:', minutes, 'minutes')
+  } catch {
+    watchThresholdSeconds = 60
+  }
 }
 
 // ─── Subscribe detection ──────────────────────────────────────────────────────
@@ -585,7 +598,7 @@ if (isVideoPage()) {
   injectBadge()
   tryDetectCreatorWallet()
   monitorStreamDOM()
-  setupWatchTimeTracking()
+  loadWatchThreshold().then(() => startWatchTimeTracking())
   setupSubscribeDetection()
   setTimeout(checkLiveStatus, 3000)
   setInterval(checkLiveStatus, 30000)
@@ -601,11 +614,10 @@ new MutationObserver(() => {
     if (existing) existing.remove()
 
     if (isVideoPage()) {
-      watchSeconds = 0
-      watchTimerFired = false
       currentlyLive = false
       setTimeout(injectBadge, 1000)
       tryDetectCreatorWallet()
+      loadWatchThreshold().then(() => startWatchTimeTracking())
       setTimeout(checkLiveStatus, 3000)
     } else {
       safeSendMessage({ type: 'CLEAR_CREATOR_WALLET' })

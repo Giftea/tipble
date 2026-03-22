@@ -16,23 +16,27 @@ interface Rule {
   enabled: boolean
   amount: string
   asset: string
+  thresholdMinutes?: string
 }
 
 const RULE_LABELS: Record<string, string> = {
-  followerMilestones: 'Follower Milestones',
-  newSubscriber:      'New Subscriber',
-  viewerSpike:        'Viewer Spike',
-  watchingNow:        'Watching Now',
-  newFollower:        'New Follower'
+  followerMilestones:   'Follower Milestones',
+  newSubscriber:        'New Subscriber',
+  viewerSpike:          'Viewer Spike',
+  watchingNow:          'New Viewer',
+  newFollower:          'New Follower',
+  watchTime:            'Watch Time',
+  newSubscriberDetected:'Subscriber Action',
 }
 
 function rulesObjectToArray(rulesObj: Record<string, RuleValue>): Rule[] {
   return Object.entries(rulesObj).map(([key, val]) => ({
     key,
-    name:    RULE_LABELS[key] ?? key,
-    enabled: val.enabled ?? false,
-    amount:  val.tipAmount ?? '0',
-    asset:   val.asset ?? 'USDT'
+    name:             RULE_LABELS[key] ?? key,
+    enabled:          val.enabled ?? false,
+    amount:           val.tipAmount ?? '0',
+    asset:            val.asset ?? 'USDT',
+    thresholdMinutes: key === 'watchTime' ? String(val.thresholdMinutes ?? 30) : undefined,
   }))
 }
 
@@ -98,7 +102,8 @@ export default function Rules() {
           ...updatedRules[r.key],
           enabled:   r.enabled,
           tipAmount: r.amount,
-          asset:     r.asset
+          asset:     r.asset,
+          ...(r.thresholdMinutes !== undefined ? { thresholdMinutes: parseInt(r.thresholdMinutes, 10) || 30 } : {})
         }
       })
 
@@ -121,6 +126,10 @@ export default function Rules() {
 
   function updateAmount(key: string, amount: string) {
     setRules(r => r.map(rule => rule.key === key ? { ...rule, amount } : rule))
+  }
+
+  function updateThreshold(key: string, thresholdMinutes: string) {
+    setRules(r => r.map(rule => rule.key === key ? { ...rule, thresholdMinutes } : rule))
   }
 
   if (loading) {
@@ -158,6 +167,25 @@ export default function Rules() {
                   {rule.name}
                 </div>
               </div>
+
+              {rule.thresholdMinutes !== undefined && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                  <input
+                    type="number"
+                    min={1}
+                    max={120}
+                    value={rule.thresholdMinutes}
+                    onChange={e => updateThreshold(rule.key, e.target.value)}
+                    style={{
+                      width: 40, padding: '3px 4px',
+                      background: '#020810', border: '1px solid #0b1e38',
+                      borderRadius: 4, color: '#e8f4ff', fontSize: 12,
+                      textAlign: 'right', outline: 'none'
+                    }}
+                  />
+                  <span style={{ fontSize: 10, color: '#3a6a96', whiteSpace: 'nowrap' }}>min</span>
+                </div>
+              )}
 
               <input
                 value={rule.amount}

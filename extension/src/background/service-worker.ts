@@ -3,6 +3,45 @@ import { fetchStatus } from '../lib/api'
 
 let lastTipId = ''
 
+async function notifyTipFired(
+  tabId: number | undefined,
+  result: { tipped?: boolean; hash?: string; tipsCount?: number; totalTipped?: string; network?: string },
+  tipInfo: { amount: string; asset: string; reason: string; eventType: string }
+): Promise<void> {
+  if (!result.tipped || !result.hash || !tabId) return
+
+  const tip = {
+    id: Date.now().toString(),
+    timestamp: new Date().toISOString(),
+    txHash: result.hash,
+    amount: tipInfo.amount,
+    asset: tipInfo.asset,
+    reason: tipInfo.reason,
+    eventType: tipInfo.eventType,
+    confidence: 1.0
+  }
+
+  chrome.tabs.sendMessage(tabId, {
+    type: 'TIP_FIRED',
+    tip,
+    status: {
+      tipsCount: result.tipsCount ?? 0,
+      totalTipped: result.totalTipped ?? '0',
+      network: result.network ?? 'base'
+    }
+  })
+
+  const settings = await getSettings()
+  if (settings.showNotifications) {
+    chrome.notifications.create({
+      type: 'basic',
+      iconUrl: 'icons/icon48.png',
+      title: 'Tipble — Tip Sent!',
+      message: `${tipInfo.amount} ${tipInfo.asset} → Creator | ${tipInfo.reason}`
+    })
+  }
+}
+
 chrome.runtime.onInstalled.addListener(() => {
   chrome.alarms.create('pollAgent', {
     periodInMinutes: 0.17 // ~10 seconds
@@ -71,7 +110,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
   }
 })
 
-chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'GET_STATUS') {
     chrome.storage.local.get(['cachedStatus', 'lastPolled', 'currentCreatorWallet', 'currentPageUrl'], (data) => {
       sendResponse(data)
@@ -142,7 +181,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
           const creatorAddress = (stored.currentCreatorWallet as { evm?: string } | undefined)?.evm
 
           if (creatorAddress) {
-            await fetch(`${settings.agentApiUrl}/api/stream/event`, {
+            const res = await fetch(`${settings.agentApiUrl}/api/stream/event`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
@@ -153,6 +192,13 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
                 creatorName: message.state.creatorName,
                 pageUrl: message.state.pageUrl
               })
+            })
+            const result = await res.json()
+            await notifyTipFired(sender.tab?.id, result, {
+              amount: result.amount ?? '0',
+              asset: result.asset ?? 'USDT',
+              reason: result.reason ?? message.eventType,
+              eventType: message.eventType
             })
           }
         } catch {
@@ -175,7 +221,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 
       if (creatorAddress) {
         try {
-          await fetch(`${settings.agentApiUrl}/api/stream/event`, {
+          const res = await fetch(`${settings.agentApiUrl}/api/stream/event`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -187,6 +233,13 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
               watchSeconds: message.watchSeconds,
               pageUrl: message.pageUrl
             })
+          })
+          const result = await res.json()
+          await notifyTipFired(sender.tab?.id, result, {
+            amount: result.amount ?? '0',
+            asset: result.asset ?? 'USDT',
+            reason: result.reason ?? 'Watch time reached',
+            eventType: 'watch_time_reached'
           })
         } catch {
           // Agent offline — ignore
@@ -207,7 +260,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 
       if (creatorAddress) {
         try {
-          await fetch(`${settings.agentApiUrl}/api/stream/event`, {
+          const res = await fetch(`${settings.agentApiUrl}/api/stream/event`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -218,6 +271,13 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
               creatorName: creatorName ?? 'Creator',
               pageUrl: message.pageUrl
             })
+          })
+          const result = await res.json()
+          await notifyTipFired(sender.tab?.id, result, {
+            amount: result.amount ?? '0',
+            asset: result.asset ?? 'USDT',
+            reason: result.reason ?? 'Subscribed to creator',
+            eventType: 'subscriber_action'
           })
         } catch {
           // Agent offline — ignore

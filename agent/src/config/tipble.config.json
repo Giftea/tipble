@@ -1,7 +1,7 @@
 {
   "creator": {
-    "walletAddress": "0xead08636e20fd9bdd37f44adad80d3be1c7c3651",
-    "displayName": "iCheapshot"
+    "walletAddress": "0x84f0a5990aa120aff809e18eac9d4de034417a66",
+    "displayName": "Classical Music to Relax"
   },
   "rules": {
     "followerMilestones": {
@@ -35,13 +35,13 @@
       "asset": "USDT"
     },
     "newFollower": {
-      "enabled": false,
+      "enabled": true,
       "tipAmount": "0.10",
       "asset": "USDT"
     },
     "watchTime": {
       "enabled": true,
-      "thresholdMinutes": 30,
+      "thresholdMinutes": 10,
       "tipAmount": "0.25",
       "asset": "USDT"
     },

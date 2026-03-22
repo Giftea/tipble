@@ -118,5 +118,125 @@
     "txHash": "0xc0e516198f03d23e4d7ec3b388d9d637d53c6ee355746821f8c849d46fb65f71",
     "eventType": "manual",
     "confidence": 1
+  },
+  {
+    "id": "17741906923980.1852060671389244",
+    "timestamp": "2026-03-22T14:44:52.398Z",
+    "reason": "Watch time reached",
+    "amount": "0.25",
+    "asset": "USDT",
+    "txHash": "0xf283f14428c5c07778da7b9fab6fc464e0eba47e1b99e92d56a070167d8b495c",
+    "eventType": "watch_time_reached",
+    "confidence": 1
+  },
+  {
+    "id": "17741909649540.028116510130625993",
+    "timestamp": "2026-03-22T14:49:24.954Z",
+    "reason": "Watch time reached",
+    "amount": "0.25",
+    "asset": "USDT",
+    "txHash": "0x9d7709db9011012f314f31bf5fc08f2ad4cc561a32fb77c7fb5095283d6c36e0",
+    "eventType": "watch_time_reached",
+    "confidence": 1
+  },
+  {
+    "id": "17741914543070.6849284634025266",
+    "timestamp": "2026-03-22T14:57:34.307Z",
+    "reason": "New viewer watching",
+    "amount": "0.00001",
+    "asset": "USDT",
+    "txHash": "0x45b11ca3d38abceee01565189b1929cc2b134fb953d19a29c8d6701f53ca8500",
+    "eventType": "new_viewer",
+    "confidence": 1
+  },
+  {
+    "id": "17741914844120.11418467041097946",
+    "timestamp": "2026-03-22T14:58:04.412Z",
+    "reason": "New viewer watching",
+    "amount": "0.00001",
+    "asset": "USDT",
+    "txHash": "0x5e941d9cfa6e08f5edcf78f16b3b0c9084eeb63ae9d9a8cbd4fb89c3ba115bcc",
+    "eventType": "new_viewer",
+    "confidence": 1
+  },
+  {
+    "id": "17741915152530.046445939207187203",
+    "timestamp": "2026-03-22T14:58:35.253Z",
+    "reason": "New viewer watching",
+    "amount": "0.00001",
+    "asset": "USDT",
+    "txHash": "0xfda76b5a362c98eb664b28cc333a19b119307d35854e00ebf527915bcb0a1654",
+    "eventType": "new_viewer",
+    "confidence": 1
+  },
+  {
+    "id": "17741915240890.47860710145677055",
+    "timestamp": "2026-03-22T14:58:44.089Z",
+    "reason": "New viewer watching",
+    "amount": "0.00001",
+    "asset": "USDT",
+    "txHash": "0x1138e9b6684416248c3fdf2dd76bdf80934a7ac523cf7e5cb259ece96467a5b7",
+    "eventType": "new_viewer",
+    "confidence": 1
+  },
+  {
+    "id": "17741915543220.20219253810924354",
+    "timestamp": "2026-03-22T14:59:14.322Z",
+    "reason": "New viewer watching",
+    "amount": "0.00001",
+    "asset": "USDT",
+    "txHash": "0x68c12eb2da9aed8d4cb18a66c572581acf19b99d969b4ef3b9a66b1032eff449",
+    "eventType": "new_viewer",
+    "confidence": 1
+  },
+  {
+    "id": "17741915745750.4620666883889126",
+    "timestamp": "2026-03-22T14:59:34.575Z",
+    "reason": "New viewer watching",
+    "amount": "0.00001",
+    "asset": "USDT",
+    "txHash": "0x884044fd4403d74fa922a20be18f17bb312b57a77763881de9499030edfad979",
+    "eventType": "new_viewer",
+    "confidence": 1
+  },
+  {
+    "id": "17741915945690.4060194500903216",
+    "timestamp": "2026-03-22T14:59:54.569Z",
+    "reason": "New viewer watching",
+    "amount": "0.00001",
+    "asset": "USDT",
+    "txHash": "0x2db32875e06b640e2c4eff1be6ffcb8eaafc349ff176ec7f8aa716282f47a722",
+    "eventType": "new_viewer",
+    "confidence": 1
+  },
+  {
+    "id": "17741918312430.3959381580390371",
+    "timestamp": "2026-03-22T15:03:51.243Z",
+    "reason": "New viewer watching",
+    "amount": "0.00001",
+    "asset": "USDT",
+    "txHash": "0x37fc8c47d95edce1919f4126835b90abd2c5efc6e4d7a395ae305722828cc08a",
+    "eventType": "new_viewer",
+    "confidence": 1
+  },
+  {
+    "id": "17741934942370.32460147617954016",
+    "timestamp": "2026-03-22T15:31:34.237Z",
+    "reason": "Subscribed to creator",
+    "amount": "0.50",
+    "asset": "USDT",
+    "txHash": "0x7a978100bded4d5cd105375082279e5999eb9eb2ddfb61df44f171dcf4118991",
+    "eventType": "subscriber_action",
+    "confidence": 1
+  },
+  {
+    "id": "17741935056090.5506946894808191",
+    "timestamp": "2026-03-22T15:31:45.609Z",
+    "reason": "Subscribed to creator",
+    "amount": "0.50",
+    "asset": "USDT",
+    "txHash": "0xb6f4877eb4fc97af768cdcce0b3f68a2facc8b4029f81bf4b469bba553bc3a4d",
+    "eventType": "subscriber_action",
+    "confidence": 1
   }
 ]

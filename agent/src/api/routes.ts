@@ -31,6 +31,16 @@ router.get("/status", async (_req, res) => {
     agentLog: agentLog.slice(-50).reverse(),
     eventsCount: agentLog.filter(l => l.type === 'EVT').length,
     limitsEnforced: true,
+    rules: config.rules,
+    config: {
+      rules: config.rules,
+      budget: config.budget,
+      agent: {
+        network: config.agent.network,
+        demoMode: config.agent.demoMode,
+        llmEnabled: config.agent.llmEnabled,
+      }
+    }
   })
 })
 
@@ -321,7 +331,7 @@ router.post("/stream/event", async (req, res) => {
     message: `${decision.amount} ${decision.asset} → ${creatorName} | ${decision.reason} | ${result.hash.slice(0, 10)}...`
   })
 
-  res.json({ success: true, tipped: true, hash: result.hash })
+  res.json({ success: true, tipped: true, hash: result.hash, amount: decision.amount, asset: decision.asset, reason: decision.reason, eventType })
 })
 
 export default router
