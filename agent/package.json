@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "tsx watch src/agent/index.ts",
     "start": "tsx src/agent/index.ts",
+    "build": "tsc --outDir dist",
     "test:stage1": "tsx src/tests/stage1-wallet.ts",
     "test:stage2": "tsx src/tests/stage2-rumble.ts",
     "test:stage3": "tsx src/tests/stage3-claude.ts",
