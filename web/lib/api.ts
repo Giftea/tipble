@@ -1,7 +1,7 @@
 import type { AgentStatus, TipbleConfig } from "@/types"
 
 export const AGENT_API =
-  process.env.NEXT_PUBLIC_AGENT_API ?? "http://localhost:3001"
+  process.env.NEXT_PUBLIC_AGENT_API || "http://localhost:3001"
 
 export const SEED_KEY = "tipble_seed_phrase"
 export const DEMO_KEY = "tipble_demo_mode"
