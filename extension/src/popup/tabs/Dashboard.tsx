@@ -25,7 +25,7 @@ function explorerUrl(hash: string, network: string): string {
 
 type Tab = 'dashboard' | 'rules' | 'history' | 'settings'
 
-export default function Dashboard({ onNavigate }: { onNavigate: (tab: Tab) => void }) {
+export default function Dashboard({ onNavigate, isActive }: { onNavigate: (tab: Tab) => void; isActive: boolean }) {
   const [walletReady, setWalletReady] = useState<boolean | null>(null)
   const [isDemoMode, setIsDemoMode] = useState(false)
   const [status, setStatus] = useState<AgentStatus | null>(null)
@@ -38,13 +38,14 @@ export default function Dashboard({ onNavigate }: { onNavigate: (tab: Tab) => vo
   const [tipError, setTipError] = useState<string | null>(null)
   const [tipSuccess, setTipSuccess] = useState<TipSuccess | null>(null)
 
-  // Check wallet readiness on mount
+  // Re-check wallet whenever the tab becomes active
   useEffect(() => {
+    if (!isActive) return
     Promise.all([getSeedPhrase(), getDemoMode()]).then(([seed, demo]) => {
       setIsDemoMode(demo)
       setWalletReady(!!seed || demo)
     })
-  }, [])
+  }, [isActive])
 
   // Load data once wallet is ready
   useEffect(() => {

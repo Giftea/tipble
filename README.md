@@ -322,7 +322,7 @@ Track 4: Tipping Bot
 
 ## 📄 License
 
-MIT
+Apache 2.0 
 
 ---
 
