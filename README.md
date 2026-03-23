@@ -302,7 +302,6 @@ User connects wallet (seed phrase)
 - [ ] Polygon mainnet production deployment
 - [ ] XAUT (Tether Gold) tipping support
 - [ ] Multi-creator support (tip multiple creators simultaneously)
-- [ ] Rumble chat message detection (tip on super chats)
 - [ ] Mobile companion app
 - [ ] "Deploy your own" one-click Railway button
 
@@ -322,7 +321,7 @@ Track 4: Tipping Bot
 
 ## 📄 License
 
-Apache 2.0 
+Apache License 2.0 
 
 ---
 
