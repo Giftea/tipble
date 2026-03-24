@@ -96,9 +96,10 @@ export default function HistoryPage() {
   const [cacheKey, setCacheKey] = useState<string | null>(null)
 
   useEffect(() => {
+    const seed = getSeedPhrase()
     const addr = localStorage.getItem(ADDR_KEY)
     const demo = localStorage.getItem(DEMO_KEY)
-    setCacheKey(addr ?? (demo ? 'demo' : null))
+    setCacheKey(addr ?? (seed ? 'wallet' : demo ? 'demo' : null))
   }, [])
 
   const { data: status, error: statusError } = useSWR<AgentStatus>(

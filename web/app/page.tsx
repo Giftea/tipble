@@ -228,7 +228,7 @@ export default function DashboardPage() {
     // Derive a per-account cache key so SWR never serves one user's
     // cached data to another user sharing the same browser.
     const addr = localStorage.getItem(ADDR_KEY)
-    setCacheKey(addr ?? (demo ? 'demo' : null))
+    setCacheKey(addr ?? (seed ? 'wallet' : demo ? 'demo' : null))
     setWalletReady(!!(seed || demo))
   }, [])
 
@@ -250,7 +250,7 @@ export default function DashboardPage() {
     const demo = !!localStorage.getItem(DEMO_KEY)
     setIsDemoMode(demo)
     const addr = localStorage.getItem(ADDR_KEY)
-    setCacheKey(addr ?? (demo ? 'demo' : null))
+    setCacheKey(addr ?? (demo ? 'demo' : 'wallet'))
     setWalletReady(true)
     mutate()
   }
