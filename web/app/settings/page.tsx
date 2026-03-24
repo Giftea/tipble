@@ -17,7 +17,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 import type { TipbleConfig } from "@/types"
-import { SEED_KEY, DEMO_KEY } from "@/lib/api"
+import { SEED_KEY, DEMO_KEY, ADDR_KEY } from "@/lib/api"
 
 const fetcher = (url: string) =>
   fetch(url).then((r) => {
@@ -57,7 +57,7 @@ function validate(form: FormState): string | null {
 
 // ── Wallet Section ─────────────────────────────────────────────────────────────
 
-function WalletSection({ seedKey, demoKey }: { seedKey: string; demoKey: string }) {
+function WalletSection({ seedKey, demoKey, addrKey }: { seedKey: string; demoKey: string; addrKey: string }) {
   const [address, setAddress] = useState<string | null>(null)
   const [step, setStep] = useState<"idle" | "seed-reveal" | "import">("idle")
   const [generatedSeed, setGeneratedSeed] = useState<string | null>(null)
@@ -112,10 +112,9 @@ function WalletSection({ seedKey, demoKey }: { seedKey: string; demoKey: string 
       const data = await res.json()
       if (data.valid && data.address) {
         localStorage.setItem(seedKey, generatedSeed)
+        localStorage.setItem(addrKey, data.address)
         localStorage.removeItem(demoKey)
-        setAddress(data.address)
-        setStep("idle")
-        setGeneratedSeed(null)
+        window.location.reload()
       }
     } catch {
       toast.error("Failed to save wallet")
@@ -135,10 +134,9 @@ function WalletSection({ seedKey, demoKey }: { seedKey: string; demoKey: string 
       const data = await res.json()
       if (data.valid && data.address) {
         localStorage.setItem(seedKey, importText.trim())
+        localStorage.setItem(addrKey, data.address)
         localStorage.removeItem(demoKey)
-        setAddress(data.address)
-        setImportText("")
-        setStep("idle")
+        window.location.reload()
       } else {
         setImportError(data.error ?? "Invalid seed phrase")
       }
@@ -151,6 +149,7 @@ function WalletSection({ seedKey, demoKey }: { seedKey: string; demoKey: string 
   function handleDisconnect() {
     localStorage.removeItem(seedKey)
     localStorage.removeItem(demoKey)
+    localStorage.removeItem(addrKey)
     setAddress(null)
     setStep("idle")
     window.location.reload()
@@ -393,7 +392,7 @@ export default function SettingsPage() {
       <div className="px-6 py-6 max-w-2xl mx-auto space-y-6 pb-6">
 
         {/* 1. WALLET */}
-        <WalletSection seedKey={SEED_KEY} demoKey={DEMO_KEY} />
+        <WalletSection seedKey={SEED_KEY} demoKey={DEMO_KEY} addrKey={ADDR_KEY} />
 
         {/* 2. SPENDING LIMITS */}
         <section className={sectionClass()}>
@@ -471,6 +470,7 @@ export default function SettingsPage() {
                 onClick={() => {
                   localStorage.removeItem(SEED_KEY)
                   localStorage.removeItem(DEMO_KEY)
+                  localStorage.removeItem(ADDR_KEY)
                   window.location.reload()
                 }}
                 className="border-red-800 text-red-400 hover:bg-red-900/30 hover:text-red-300"

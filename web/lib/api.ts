@@ -1,10 +1,10 @@
 import type { AgentStatus, TipbleConfig } from "@/types"
 
-export const AGENT_API =
-  process.env.NEXT_PUBLIC_AGENT_API || "http://localhost:3001"
+const API_BASE = '/api/proxy'
 
 export const SEED_KEY = "tipble_seed_phrase"
 export const DEMO_KEY = "tipble_demo_mode"
+export const ADDR_KEY = "tipble_wallet_address"
 
 export function getSeedPhrase(): string | null {
   return typeof window !== "undefined" ? localStorage.getItem(SEED_KEY) : null
@@ -19,19 +19,19 @@ export function getAuthHeaders(): HeadersInit {
 }
 
 export async function fetchStatus(): Promise<AgentStatus> {
-  const res = await fetch(`${AGENT_API}/api/status`, { headers: getAuthHeaders() })
+  const res = await fetch(`${API_BASE}/status`, { headers: getAuthHeaders() })
   if (!res.ok) throw new Error(`Failed to fetch status: ${res.statusText}`)
   return res.json()
 }
 
 export async function fetchConfig(): Promise<TipbleConfig> {
-  const res = await fetch(`${AGENT_API}/api/config`)
+  const res = await fetch(`${API_BASE}/config`)
   if (!res.ok) throw new Error(`Failed to fetch config: ${res.statusText}`)
   return res.json()
 }
 
 export async function updateConfig(config: Partial<TipbleConfig>): Promise<void> {
-  const res = await fetch(`${AGENT_API}/api/config`, {
+  const res = await fetch(`${API_BASE}/config`, {
     method: "POST",
     headers: getAuthHeaders(),
     body: JSON.stringify(config),
@@ -42,7 +42,7 @@ export async function updateConfig(config: Partial<TipbleConfig>): Promise<void>
 export async function sendManualTip(
   reason: string
 ): Promise<{ success: boolean; hash?: string }> {
-  const res = await fetch(`${AGENT_API}/api/tip/manual`, {
+  const res = await fetch(`${API_BASE}/tip/manual`, {
     method: "POST",
     headers: getAuthHeaders(),
     body: JSON.stringify({ reason }),

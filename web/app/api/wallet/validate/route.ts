@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 
-const AGENT_API = process.env.NEXT_PUBLIC_AGENT_API ?? "http://localhost:3001"
+const AGENT_API = process.env.AGENT_API_URL ?? 'http://localhost:3001'
 
 export async function POST(req: NextRequest) {
   try {

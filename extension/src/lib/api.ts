@@ -1,9 +1,27 @@
 import type { AgentStatus } from '../types'
 import { getSettings, getSeedPhrase } from './storage'
 
+const FALLBACK_URL = 'https://tipble-production.up.railway.app'
+
 export async function getAgentUrl(): Promise<string> {
   const settings = await getSettings()
-  return settings.agentApiUrl
+  const primary = settings.agentApiUrl
+
+  // If the user has already set a non-localhost URL, use it directly
+  if (!primary.includes('localhost') && !primary.includes('127.0.0.1')) {
+    return primary
+  }
+
+  // Probe localhost with a 1.5 s timeout; fall back to Railway if unreachable
+  try {
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), 1500)
+    await fetch(`${primary}/api/status`, { signal: controller.signal })
+    clearTimeout(timer)
+    return primary
+  } catch {
+    return FALLBACK_URL
+  }
 }
 
 export async function fetchStatus(): Promise<AgentStatus> {

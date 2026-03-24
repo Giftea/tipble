@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import useSWR from "swr"
 import { Download } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
@@ -14,12 +15,14 @@ import {
 } from "@/components/ui/table"
 import { formatHash, getExplorerUrl } from "@/lib/utils"
 import type { TipEvent, AgentStatus } from "@/types"
+import { getSeedPhrase, DEMO_KEY, ADDR_KEY } from "@/lib/api"
 
-const fetcher = (url: string) =>
-  fetch(url).then((r) => {
-    if (!r.ok) throw new Error("offline")
-    return r.json()
-  })
+const fetcher = async (url: string) => {
+  const seed = getSeedPhrase()
+  const res = await fetch(url, { headers: seed ? { "x-seed-phrase": seed } : {} })
+  if (!res.ok) throw new Error("offline")
+  return res.json()
+}
 
 // ── Event type badge ──────────────────────────────────────────
 
@@ -90,13 +93,23 @@ function exportCSV(tips: TipEvent[]) {
 // ── Page ──────────────────────────────────────────────────────
 
 export default function HistoryPage() {
-  const { data: tips, error: tipsError } = useSWR<TipEvent[]>("/api/tips", fetcher, {
-    refreshInterval: 5000,
-  })
-  const { data: status } = useSWR<AgentStatus>("/api/status", fetcher, {
-    refreshInterval: 5000,
-  })
+  const [cacheKey, setCacheKey] = useState<string | null>(null)
 
+  useEffect(() => {
+    const seed = getSeedPhrase()
+    const addr = localStorage.getItem(ADDR_KEY)
+    const demo = localStorage.getItem(DEMO_KEY)
+    setCacheKey(addr ?? (seed ? 'wallet' : demo ? 'demo' : null))
+  }, [])
+
+  const { data: status, error: statusError } = useSWR<AgentStatus>(
+    cacheKey ? `/api/status?_=${cacheKey}` : null,
+    fetcher,
+    { refreshInterval: 5000 }
+  )
+
+  const tips = status?.recentTips ?? null
+  const tipsError = statusError
   const network = status?.network ?? "base"
 
   const totalTipped = tips

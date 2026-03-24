@@ -7,7 +7,7 @@ import MetricCard from "@/components/MetricCard"
 import ActivityFeed from "@/components/ActivityFeed"
 import AgentLog from "@/components/AgentLog"
 import { formatEth } from "@/lib/utils"
-import { SEED_KEY, DEMO_KEY, getSeedPhrase } from "@/lib/api"
+import { SEED_KEY, DEMO_KEY, ADDR_KEY, getSeedPhrase } from "@/lib/api"
 
 // ── Seed-aware SWR fetcher ────────────────────────────────────
 const fetcher = async (url: string) => {
@@ -70,6 +70,7 @@ function WalletModal({ onConnected }: { onConnected: () => void }) {
 
   function confirmSeed() {
     localStorage.setItem(SEED_KEY, generatedSeed)
+    localStorage.setItem(ADDR_KEY, generatedAddress)
     onConnected()
   }
 
@@ -87,6 +88,7 @@ function WalletModal({ onConnected }: { onConnected: () => void }) {
       const data = await res.json() as { valid: boolean; address?: string; error?: string }
       if (data.valid) {
         localStorage.setItem(SEED_KEY, phrase)
+        if (data.address) localStorage.setItem(ADDR_KEY, data.address)
         onConnected()
       } else {
         setImportError(data.error ?? "Invalid seed phrase")
@@ -100,6 +102,7 @@ function WalletModal({ onConnected }: { onConnected: () => void }) {
 
   function handleDemo() {
     localStorage.setItem(DEMO_KEY, "1")
+    localStorage.removeItem(ADDR_KEY)
     onConnected()
   }
 
@@ -216,21 +219,26 @@ export default function DashboardPage() {
   // null = not yet checked, false = show modal, true = ready
   const [walletReady, setWalletReady] = useState<boolean | null>(null)
   const [isDemoMode, setIsDemoMode] = useState(false)
+  const [cacheKey, setCacheKey] = useState<string | null>(null)
 
   useEffect(() => {
     const seed = localStorage.getItem(SEED_KEY)
     const demo = localStorage.getItem(DEMO_KEY)
     setIsDemoMode(!!demo)
+    // Derive a per-account cache key so SWR never serves one user's
+    // cached data to another user sharing the same browser.
+    const addr = localStorage.getItem(ADDR_KEY)
+    setCacheKey(addr ?? (seed ? 'wallet' : demo ? 'demo' : null))
     setWalletReady(!!(seed || demo))
   }, [])
 
   const { data, error, mutate } = useSWR<AgentStatus>(
-    walletReady ? "/api/status" : null,
+    walletReady && cacheKey ? `/api/status?_=${cacheKey}` : null,
     fetcher,
     { refreshInterval: 3000 }
   )
   const { data: usdtData } = useSWR<{ balance: string; asset: string }>(
-    walletReady ? "/api/wallet/usdt-balance" : null,
+    walletReady && cacheKey ? `/api/wallet/usdt-balance?_=${cacheKey}` : null,
     fetcher,
     { refreshInterval: 3000 }
   )
@@ -241,6 +249,8 @@ export default function DashboardPage() {
   function handleConnected() {
     const demo = !!localStorage.getItem(DEMO_KEY)
     setIsDemoMode(demo)
+    const addr = localStorage.getItem(ADDR_KEY)
+    setCacheKey(addr ?? (demo ? 'demo' : 'wallet'))
     setWalletReady(true)
     mutate()
   }
