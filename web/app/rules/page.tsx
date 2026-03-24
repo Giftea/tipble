@@ -360,7 +360,7 @@ export default function RulesPage() {
         </Button>
       </div>
 
-      <div className="p-6 max-w-3xl space-y-6">
+      <div className="p-6 grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
 
         {/* ── 1. Configure Rules ─────────────────────────────── */}
         <Card className="bg-zinc-900 border-zinc-800">
