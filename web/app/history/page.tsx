@@ -90,13 +90,12 @@ function exportCSV(tips: TipEvent[]) {
 // ── Page ──────────────────────────────────────────────────────
 
 export default function HistoryPage() {
-  const { data: tips, error: tipsError } = useSWR<TipEvent[]>("/api/tips", fetcher, {
-    refreshInterval: 5000,
-  })
-  const { data: status } = useSWR<AgentStatus>("/api/status", fetcher, {
+  const { data: status, error: statusError } = useSWR<AgentStatus>("/api/status", fetcher, {
     refreshInterval: 5000,
   })
 
+  const tips = status?.recentTips ?? null
+  const tipsError = statusError
   const network = status?.network ?? "base"
 
   const totalTipped = tips
