@@ -4,6 +4,7 @@ const API_BASE = '/api/proxy'
 
 export const SEED_KEY = "tipble_seed_phrase"
 export const DEMO_KEY = "tipble_demo_mode"
+export const ADDR_KEY = "tipble_wallet_address"
 
 export function getSeedPhrase(): string | null {
   return typeof window !== "undefined" ? localStorage.getItem(SEED_KEY) : null

@@ -32,7 +32,12 @@ export function getTipLog(walletAddress?: string): TipEvent[] {
     const defaultAddr = process.env.DEFAULT_WALLET_ADDRESS ?? ''
     return tipLogs.get(defaultAddr) ?? tipLogs.get('') ?? []
   }
-  return tipLogs.get(walletAddress.toLowerCase()) ?? []
+  const addr = walletAddress.toLowerCase()
+  if (!tipLogs.has(addr)) {
+    // Load from disk on first access so past sessions are visible
+    tipLogs.set(addr, loadTipLog(addr))
+  }
+  return tipLogs.get(addr) ?? []
 }
 
 export function appendToTipLog(tip: TipEvent, walletAddress: string): void {

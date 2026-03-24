@@ -50,6 +50,7 @@ async function getWalletForRequest(req: Request): Promise<{ account: any; addres
 
 router.get("/status", async (req, res) => {
   const config = getConfig()
+  const isUserRequest = !!(req.headers['x-seed-phrase'] as string | undefined)?.trim()
   const { account, address: walletAddress } = await getWalletForRequest(req)
 
   const [balanceWei, usdtBalance, userTipLog] = await Promise.all([
@@ -58,6 +59,13 @@ router.get("/status", async (req, res) => {
     Promise.resolve(getTipLog(walletAddress)),
   ])
   const balance = (Number(balanceWei) / 1e18).toFixed(6)
+
+  // When a user's seed phrase is present, scope everything to their wallet.
+  // Global agent state (agentLog, eventsCount, sessionTotal) must not leak
+  // across users sharing the same server.
+  const userSessionTotal = userTipLog
+    .reduce((s, t) => s + parseFloat(t.amount || '0'), 0)
+    .toFixed(6)
 
   res.json({
     running: true,
@@ -73,11 +81,11 @@ router.get("/status", async (req, res) => {
       .toFixed(6),
     recentTips: userTipLog.slice(-20).reverse(),
     tipLog: userTipLog.slice(-50),
-    todayTotal: getTodayTotal(),
-    sessionTotal,
+    todayTotal: getTodayTotal(walletAddress),
+    sessionTotal: isUserRequest ? userSessionTotal : sessionTotal,
     agentState,
-    agentLog: agentLog.slice(-50).reverse(),
-    eventsCount: agentLog.filter(l => l.type === 'EVT').length,
+    agentLog: isUserRequest ? [] : agentLog.slice(-50).reverse(),
+    eventsCount: isUserRequest ? userTipLog.length : agentLog.filter(l => l.type === 'EVT').length,
     limitsEnforced: true,
     rules: config.rules,
     config: {
@@ -326,10 +334,7 @@ router.post("/wallet/validate", async (req, res) => {
   }
 })
 
-router.post("/wallet/save", (req, res) => {
-  const { seedPhrase } = req.body as { seedPhrase: string }
-  console.log("[wallet] Seed phrase save requested. Add this to your .env file:")
-  console.log(`SEED_PHRASE="${seedPhrase}"`)
+router.post("/wallet/save", (_req, res) => {
   res.json({ success: true, message: "Add this seed phrase to your .env file" })
 })
 
