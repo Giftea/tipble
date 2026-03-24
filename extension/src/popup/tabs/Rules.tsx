@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { getSettings } from '../../lib/storage'
+import { getAgentUrl } from '../../lib/api'
 
 // Shape the agent API actually returns for each rule key
 interface RuleValue {
@@ -74,8 +75,8 @@ export default function Rules() {
   useEffect(() => {
     async function load() {
       try {
-        const settings = await getSettings()
-        const res = await fetch(`${settings.agentApiUrl}/api/config`)
+        const agentUrl = await getAgentUrl()
+        const res = await fetch(`${agentUrl}/api/config`)
         const data = await res.json()
         setRawConfig(data)
         const rulesObj: Record<string, RuleValue> = data.rules ?? {}
@@ -93,7 +94,7 @@ export default function Rules() {
     setSaving(true)
     setError(null)
     try {
-      const settings = await getSettings()
+      const agentUrl = await getAgentUrl()
 
       // Merge edited fields back into the raw rules object
       const updatedRules = { ...(rawConfig.rules as Record<string, RuleValue>) }
@@ -107,7 +108,7 @@ export default function Rules() {
         }
       })
 
-      await fetch(`${settings.agentApiUrl}/api/config`, {
+      await fetch(`${agentUrl}/api/config`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...rawConfig, rules: updatedRules })

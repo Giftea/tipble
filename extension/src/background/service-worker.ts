@@ -1,5 +1,5 @@
 import { getSettings, getSeedPhrase } from '../lib/storage'
-import { fetchStatus } from '../lib/api'
+import { fetchStatus, getAgentUrl } from '../lib/api'
 
 async function streamEventHeaders(): Promise<Record<string, string>> {
   const seed = await getSeedPhrase()
@@ -61,7 +61,7 @@ async function handleLowBalance(settings: Awaited<ReturnType<typeof getSettings>
     })
   }
   // Pause agent so it stops firing events
-  fetch(`${settings.agentApiUrl}/api/agent/pause`, { method: 'POST' }).catch(() => {})
+  getAgentUrl().then(url => fetch(`${url}/api/agent/pause`, { method: 'POST' })).catch(() => {})
 }
 
 chrome.runtime.onInstalled.addListener(() => {
@@ -119,9 +119,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       currentPageUrl: pageUrl
     })
 
-    getSettings().then(async (settings) => {
+    getSettings().then(async () => {
       try {
-        const res = await fetch(`${settings.agentApiUrl}/api/creator/set`, {
+        const url = await getAgentUrl()
+        const res = await fetch(`${url}/api/creator/set`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -143,9 +144,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'CLEAR_CREATOR_WALLET') {
     chrome.storage.local.remove(['currentCreatorWallet', 'currentPageUrl'])
 
-    getSettings().then(async (settings) => {
+    getSettings().then(async () => {
       try {
-        await fetch(`${settings.agentApiUrl}/api/creator/clear`, { method: 'POST' })
+        const url = await getAgentUrl()
+        await fetch(`${url}/api/creator/clear`, { method: 'POST' })
       } catch {
         // silently ignore agent clear failures
       }
@@ -169,7 +171,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           const creatorAddress = (stored.currentCreatorWallet as { evm?: string } | undefined)?.evm
 
           if (creatorAddress) {
-            const res = await fetch(`${settings.agentApiUrl}/api/stream/event`, {
+            const agentUrl = await getAgentUrl()
+            const res = await fetch(`${agentUrl}/api/stream/event`, {
               method: 'POST',
               headers: await streamEventHeaders(),
               body: JSON.stringify({
@@ -213,7 +216,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
       if (creatorAddress) {
         try {
-          const res = await fetch(`${settings.agentApiUrl}/api/stream/event`, {
+          const agentUrl = await getAgentUrl()
+          const res = await fetch(`${agentUrl}/api/stream/event`, {
             method: 'POST',
             headers: await streamEventHeaders(),
             body: JSON.stringify({
@@ -256,7 +260,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
       if (creatorAddress) {
         try {
-          const res = await fetch(`${settings.agentApiUrl}/api/stream/event`, {
+          const agentUrl = await getAgentUrl()
+          const res = await fetch(`${agentUrl}/api/stream/event`, {
             method: 'POST',
             headers: await streamEventHeaders(),
             body: JSON.stringify({
@@ -289,8 +294,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message.type === 'PAUSE_AGENT') {
-    getSettings().then((s) => {
-      fetch(`${s.agentApiUrl}/api/agent/pause`, { method: 'POST' }).then(() =>
+    getAgentUrl().then(url => {
+      fetch(`${url}/api/agent/pause`, { method: 'POST' }).then(() =>
         sendResponse({ success: true })
       )
     })
@@ -298,8 +303,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message.type === 'RESUME_AGENT') {
-    getSettings().then((s) => {
-      fetch(`${s.agentApiUrl}/api/agent/resume`, { method: 'POST' }).then(() =>
+    getAgentUrl().then(url => {
+      fetch(`${url}/api/agent/resume`, { method: 'POST' }).then(() =>
         sendResponse({ success: true })
       )
     })
